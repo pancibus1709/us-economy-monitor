@@ -18,266 +18,430 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 </script></head><body><div id="dash-root">
 
 <style>
-/* Layout: a cobalt Casa Azul header, a rebozo ribbon, then one calm column on lime-wash white.
-   Colour is used sparingly, the way a retablo uses it: cobalt for the subject, ochre for its pair,
-   leaf green and cochineal red only for better and worse. */
+/* Cobalt masthead, one sticky row of tabs, then panels that lead with charts.
+   Colour is spare: cobalt for the subject, ochre and rosa for its pairs, green and red only for up and down. */
 #dash-root { --dash-gutter: 0; }
 .em {
-  --wall: #FBFAF6; --panel: #FFFFFF; --ink: #1B1D26; --ink-2: #555A6B; --ink-3: #8A8E9C; --line: #E4E1D8;
-  --cobalt: #1F4FA8; --cobalt-deep: #173C82; --cobalt-wash: #EAF0FA; --ochre: #C27F0A; --marigold: #F0B429;
-  --leaf: #2F7A52; --cochineal: #B5263A; --rosa: #C9357A;
+  --wall: #FBFAF6; --panel: #FFFFFF; --ink: #14161F; --ink-2: #4E5364; --ink-3: #7C8191; --line: #E4E1D8; --line-2: #EFECE4;
+  --cobalt: #1F4FA8; --cobalt-deep: #173C82; --cobalt-wash: #EAF0FA; --ochre: #C27F0A; --marigold: #F0B429; --rosa: #C9357A;
+  --up: #1E7B4F; --down: #B5263A; --up-wash: #E6F3EC; --down-wash: #FBEAEC;
   --serif: var(--font-anthropic-serif, Georgia, "Times New Roman", serif);
-  --sans: var(--font-anthropic-sans, system-ui, -apple-system, "Segoe UI", sans-serif);
-  background: var(--wall); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55;
-  color-scheme: light;
+  --sans: var(--font-anthropic-sans, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  background: var(--wall); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5;
+  color-scheme: light; min-height: 100vh; -webkit-font-smoothing: antialiased;
 }
-.em * { box-sizing: border-box; }
-.em-wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.em *, .em-drawer * { box-sizing: border-box; }
+.em button, .em-drawer button, .em input, .em select { font: inherit; color: inherit; }
+.em-wrap { max-width: 1200px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
 .em-head { background: var(--cobalt); color: #fff; }
-.em-head .em-wrap { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; padding-block: 44px 34px; }
-.em-head-text { min-width: 0; max-width: 680px; }
-.em-eyebrow { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; opacity: .85; margin: 0 0 10px; }
-.em-title { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 6vw, 56px); line-height: 1.04; margin: 0 0 14px; text-wrap: balance; }
-.em-lead { font-size: 17px; line-height: 1.5; margin: 0 0 14px; max-width: 58ch; opacity: .95; }
-.em-stamp { font-size: 12.5px; margin: 0; opacity: .85; }
-.em-flora { flex: 0 0 auto; width: 150px; height: 150px; }
-.em-ribbon { height: 8px; background: repeating-linear-gradient(90deg, var(--marigold) 0 28px, var(--cochineal) 28px 40px, var(--leaf) 40px 68px, var(--rosa) 68px 80px, var(--cobalt-deep) 80px 108px, var(--wall) 108px 112px); }
-.em-nav { position: sticky; top: 0; z-index: 5; background: var(--wall); border-bottom: 1px solid var(--line); }
-.em-nav .em-wrap { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; }
-.em-navbtn { font: inherit; font-size: 13.5px; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
-.em-navbtn:hover { color: var(--cobalt); background: var(--cobalt-wash); }
-.em-sec { padding-block: 44px 8px; }
-.em-h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; margin: 0 0 6px; text-wrap: balance; }
-.em-h2::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--marigold); margin-right: 12px; vertical-align: middle; position: relative; top: -3px; }
-.em-sub { color: var(--ink-2); margin: 0 0 22px; max-width: 68ch; }
-.em-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px; min-height: 180px; }
-.em-sum { border-top: 1px solid var(--line); padding: 14px 0 16px; }
-.em-sum h3 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cobalt); margin: 0 0 6px; font-weight: 600; }
-.em-sum p { margin: 0; font-size: 15.5px; }
-.em-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
-.em-chip { font: inherit; font-size: 13.5px; line-height: 1.3; text-align: left; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.em-head .em-wrap { display: flex; gap: 14px; align-items: center; padding-block: 18px; }
+.em-flora { flex: 0 0 auto; width: 40px; height: 40px; }
+.em-title { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 4vw, 32px); line-height: 1.1; margin: 0; }
+.em-stamp { font-size: 12.5px; margin: 3px 0 0; opacity: .9; }
+.em-ribbon { height: 5px; background: repeating-linear-gradient(90deg, var(--marigold) 0 28px, var(--down) 28px 40px, #2F7A52 40px 68px, var(--rosa) 68px 80px, var(--cobalt-deep) 80px 108px, var(--wall) 108px 112px); }
+
+.em-tabs { position: sticky; top: 0; z-index: 5; background: var(--wall); border-bottom: 1px solid var(--line); }
+.em-tabs .em-wrap { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.em-tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 13px 14px 10px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.em-tab:hover { color: var(--cobalt); }
+.em-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--cobalt); }
+.em :focus-visible, .em-drawer :focus-visible { outline: 2px solid var(--marigold); outline-offset: 2px; }
+
+.em-panel { padding-block: 8px 40px; }
+.em-panel[hidden] { display: none; }
+.em-sec { padding-top: 30px; }
+.em-sechead { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: flex-end; justify-content: space-between; margin: 0 0 14px; }
+.em-h2 { font-size: 23px; font-weight: 800; letter-spacing: -.015em; line-height: 1.15; margin: 0; padding-left: 12px; border-left: 5px solid var(--marigold); }
+.em-sub { color: var(--ink-2); font-size: 13.5px; margin: 5px 0 0 17px; max-width: 70ch; }
+.em-note { font-size: 12.5px; color: var(--ink-3); margin: 10px 0 0; }
+
+.em-bar { position: sticky; top: 47px; z-index: 4; background: var(--wall); border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.em-bar .em-wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; padding-block: 9px; }
+.em-seg { display: inline-flex; background: var(--line-2); border-radius: 8px; padding: 3px; gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.em-seg button { background: none; border: 0; border-radius: 6px; padding: 5px 11px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.em-seg button:hover { color: var(--ink); }
+.em-seg button[aria-pressed="true"] { background: var(--panel); color: var(--cobalt); box-shadow: 0 1px 2px rgba(20, 22, 31, .14); }
+.em-seglabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-3); margin-right: 8px; }
+.em-ctl { display: flex; align-items: center; }
+.em-asof { margin-left: auto; font-size: 12.5px; color: var(--ink-3); }
+
+.em-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.em-chip { font-size: 13px; line-height: 1.3; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
 .em-chip:hover { border-color: var(--cobalt); color: var(--cobalt); }
 .em-chip[aria-pressed="true"] { background: var(--cobalt); border-color: var(--cobalt); color: #fff; }
-.em-chip:focus-visible, .em-navbtn:focus-visible, .em-tile:focus-visible, .em-table tr:focus-visible { outline: 2px solid var(--marigold); outline-offset: 2px; }
-.em-chip-sm { font-size: 12.5px; padding: 4px 11px; }
-.em-card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 26px; min-height: 320px; }
-.em-two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 34px; }
-.em-two > * { min-width: 0; }
-@media (max-width: 820px) { .em-two { grid-template-columns: minmax(0, 1fr); gap: 22px; } .em-flora { display: none; } .em-card { padding: 18px; } }
-.em-kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin: 0 0 4px; }
-.em-h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.2; margin: 0 0 6px; text-wrap: balance; }
-.em-q { color: var(--ink-2); margin: 0 0 16px; }
-.em-votive { border-left: 3px solid var(--cobalt); background: var(--cobalt-wash); padding: 12px 16px; margin: 0 0 18px; font-family: var(--serif); font-size: 17px; line-height: 1.45; }
-.em-reading { margin: 0 0 16px; }
-.em-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; margin: 16px 0 3px; color: var(--ink-3); }
-.em-label.first { color: var(--cobalt); } .em-label.second { color: var(--ochre); }
-.em-text { margin: 0; max-width: 64ch; }
-.em-note { font-size: 13px; color: var(--ink-2); margin: 10px 0 0; }
-.em-chart { position: relative; width: 100%; min-height: 60px; }
-.em-chart svg { display: block; width: 100%; overflow: visible; }
-.em-chart-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 600; margin: 14px 0 2px; }
-.em-chart-title:first-child { margin-top: 0; }
-.em-swatch { width: 10px; height: 10px; border-radius: 2px; flex: 0 0 auto; position: relative; top: 1px; }
-.em-chart-title span.u { font-weight: 400; color: var(--ink-3); }
-.em-tick { font-size: 11px; fill: var(--ink-3); font-family: var(--sans); font-variant-numeric: tabular-nums; }
-.em-endlabel { font-size: 12px; font-weight: 600; fill: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
-.em-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.35; padding: 6px 9px; border-radius: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; z-index: 3; }
-.em-tip b { font-weight: 600; }
-.em-controls { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; margin: 0 0 18px; }
-.em-controls .em-chips { margin: 0; }
-.em-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 0 0 22px; min-height: 140px; }
-.em-tile { font: inherit; text-align: left; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.em-tile:hover { border-color: var(--cobalt); }
-.em-tile[aria-pressed="true"] { border-color: var(--cobalt); box-shadow: inset 0 3px 0 var(--cobalt); }
-.em-tile-name { font-size: 12.5px; color: var(--ink-2); line-height: 1.3; min-height: 2.6em; }
-.em-tile-val { font-family: var(--serif); font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+.em-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.em-card-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; color: var(--ink); margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.em-card-h span { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-3); font-size: 12px; }
+.em-grid { display: grid; gap: 12px; }
+.em-g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.em-g5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.em-g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.em-gcards { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); align-items: start; }
+.em-gtiles { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+@media (max-width: 980px) { .em-g5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .em-g3.stack { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .em-g3, .em-g2, .em-g5 { grid-template-columns: minmax(0, 1fr); } .em-g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .em-gcards { grid-template-columns: minmax(0, 1fr); } .em-card { padding: 14px; } .em-asof { margin-left: 0; } }
+
+/* Stat tile: label, number, change, sparkline. The whole tile is the button. */
+.em-tile { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 13px 14px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; min-width: 0; transition: border-color .12s, box-shadow .12s, transform .12s; }
+.em-tile:hover { border-color: var(--cobalt); box-shadow: 0 4px 14px rgba(31, 79, 168, .10); transform: translateY(-1px); }
+.em-tile[aria-pressed="true"] { border-color: var(--cobalt); box-shadow: inset 0 4px 0 var(--cobalt); }
+.em-tile-name { font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.3; }
+.em-tile-val { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .em-tile-meta { font-size: 11.5px; color: var(--ink-3); }
-.em-delta { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-.em-delta.good { color: var(--leaf); } .em-delta.bad { color: var(--cochineal); }
-.em-spark { height: 34px; margin-top: 6px; }
-.em-big { font-family: var(--serif); font-size: 52px; line-height: 1; font-variant-numeric: tabular-nums; margin: 6px 0 4px; }
-.em-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; margin: 14px 0 18px; }
-.em-stat-l { font-size: 11px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
-.em-stat-v { font-size: 16px; font-variant-numeric: tabular-nums; }
-.em-badge { display: inline-block; font-size: 10.5px; letter-spacing: .08em; font-weight: 700; border: 1px solid var(--ink-3); color: var(--ink-2); border-radius: 3px; padding: 1px 6px; vertical-align: middle; }
-.em-src { font-size: 13px; color: var(--ink-2); margin: 4px 0 0; overflow-wrap: anywhere; }
-.em a { color: var(--cobalt); text-underline-offset: 2px; }
-.em-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
-.em-table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; min-width: 720px; }
-.em-table th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.em-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.em-table tbody tr { cursor: pointer; } .em-table tbody tr:hover { background: var(--cobalt-wash); }
-.em-table tr.em-group td { background: var(--wall); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--cobalt); font-weight: 600; cursor: default; }
-.em-table .num { text-align: right; white-space: nowrap; }
-.em-bars { display: grid; gap: 6px; margin: 8px 0 0; }
-.em-bar { display: grid; grid-template-columns: minmax(110px, 190px) minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 13px; }
-.em-bar-track { background: var(--cobalt-wash); height: 12px; border-radius: 2px; }
-.em-bar-fill { background: var(--cobalt); height: 12px; border-radius: 0 3px 3px 0; }
-.em-bar-v { text-align: right; font-variant-numeric: tabular-nums; }
-.em-bar-group { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin: 12px 0 2px; }
-.em-method { border-top: 1px solid var(--line); padding: 14px 0; }
-.em-method summary { cursor: pointer; font-weight: 600; font-size: 15.5px; }
-.em-method p, .em-method li { max-width: 72ch; color: var(--ink-2); }
-.em-method ul { padding-left: 18px; }
-.em-foot { padding-block: 28px 56px; font-size: 12.5px; color: var(--ink-3); }
-.em [data-dash-source-state=refreshing] { opacity: .5; }
+.em-spark { height: 36px; margin-top: 6px; }
+.em-delta { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.em-delta.up { color: var(--up); } .em-delta.down { color: var(--down); }
+.em-delta small { font-weight: 400; color: var(--ink-3); font-size: 11.5px; }
+
+/* Row inside a theme card: name, sparkline, value, change. */
+.em-rows { display: grid; }
+.em-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px minmax(74px, auto); gap: 12px; align-items: center; text-align: left; background: none; border: 0; border-top: 1px solid var(--line-2); padding: 9px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; }
+.em-row:first-child { border-top-color: transparent; }
+.em-row:hover { background: var(--cobalt-wash); }
+.em-row-name { font-size: 13.5px; line-height: 1.25; min-width: 0; }
+.em-row-name small { display: block; color: var(--ink-3); font-size: 11.5px; }
+.em-row-spark { height: 28px; }
+.em-row-val { text-align: right; font-variant-numeric: tabular-nums; }
+.em-row-val b { display: block; font-size: 17px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+
+/* Rank strip: where the latest reading sits among its own history. */
+.em-rank { columns: 2 380px; column-gap: 40px; }
+.em-rank-g { break-inside: avoid; padding-bottom: 12px; }
+.em-rank-group { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; color: var(--cobalt); margin: 0 0 4px; }
+.em-rank-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(80px, 1fr) 64px; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 4px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.em-rank-row:hover { background: var(--cobalt-wash); }
+.em-rank-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.em-rank-row span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.em-track { position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--line) 0, var(--line) calc(50% - 1px), var(--ink-3) calc(50% - 1px), var(--ink-3) calc(50% + 1px), var(--line) calc(50% + 1px)); }
+.em-track i { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--cobalt); border: 2px solid var(--panel); transform: translate(-50%, -50%); }
+.em-track-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+
+/* Charts */
+.em-chart { position: relative; width: 100%; min-height: 40px; }
+.em-chart svg { display: block; width: 100%; overflow: visible; }
+.em-tick { font-size: 11px; fill: var(--ink-3); font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.em-endlabel { font-size: 12px; font-weight: 700; fill: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.em-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.4; padding: 6px 9px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; z-index: 6; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+.em-tip b { font-weight: 700; } .em-tip div { display: flex; gap: 6px; align-items: center; } .em-tip i { width: 10px; height: 2px; flex: 0 0 auto; }
+.em-tip .t { opacity: .75; }
+.em-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-2); margin: 0 0 6px; }
+.em-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.em-legend i { width: 14px; height: 3px; border-radius: 2px; }
+.em-chart-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 700; margin: 14px 0 2px; }
+.em-chart-title i { width: 14px; height: 3px; border-radius: 2px; flex: 0 0 auto; position: relative; top: -3px; }
+.em-chart-title span { font-weight: 400; color: var(--ink-3); }
+
+/* Index cards */
+.em-idx-name { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.em-idx-level { font-size: clamp(21px, 6vw, 30px); font-weight: 800; letter-spacing: -.025em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.em-range { margin-top: 8px; }
+.em-range .em-track { background: var(--line); }
+.em-range .em-track-ends b { color: var(--ink-2); font-weight: 600; }
+
+/* Market map */
+.em-map { position: relative; width: 100%; height: 480px; border-radius: 6px; overflow: hidden; background: var(--panel); }
+.em-map-sec { position: absolute; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: none; border: 0; padding: 0 2px; text-align: left; line-height: 16px; height: 16px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.em-map-sec:hover { color: var(--cobalt); text-decoration: underline; }
+.em-cell { position: absolute; border: 0; padding: 0; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.em-cell:hover, .em-cell:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; z-index: 2; }
+.em-cell b { font-weight: 800; } .em-cell span { opacity: .92; }
+.em-scale { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.em-scale i { width: 150px; height: 8px; border-radius: 4px; }
+
+/* Ranked bars: sectors, leaders, laggards */
+.em-list { display: grid; }
+.em-li { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(50px, 1fr) 62px; gap: 10px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 6px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.em-li:hover { background: var(--cobalt-wash); }
+.em-li-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.em-li-name b { font-weight: 700; margin-right: 6px; } .em-li-name small { color: var(--ink-3); font-size: 12px; }
+.em-li-v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.em-li-v.up { color: var(--up); } .em-li-v.down { color: var(--down); }
+.em-hbar { position: relative; height: 12px; }
+.em-hbar i { position: absolute; top: 0; height: 12px; min-width: 2px; }
+.em-hbar.div::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink-3); }
+.em-hbar .up { background: var(--up); border-radius: 0 3px 3px 0; } .em-hbar .down { background: var(--down); border-radius: 3px 0 0 3px; }
+.em-hbar.left .up, .em-hbar.left .down { left: 0; border-radius: 0 3px 3px 0; }
+
+/* Credit */
+.em-big { font-size: 40px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.em-big small { font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--ink-3); margin-left: 4px; }
+.em-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 0; margin: 12px 0 14px; }
+.em-stats.six { grid-template-columns: repeat(6, minmax(0, 1fr)); } @media (max-width: 520px) { .em-stats.six { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.em-stat-l { font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.em-stat-v { font-size: 15.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.em-stat-v.up { color: var(--up); } .em-stat-v.down { color: var(--down); }
+.em-ladder { display: grid; grid-template-columns: auto minmax(60px, 1fr) auto auto; gap: 9px 14px; align-items: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.em-ladder b { font-weight: 700; } .em-ladder .v { text-align: right; font-weight: 700; } .em-ladder .c { text-align: right; color: var(--ink-2); min-width: 44px; }
+.em-ladder .h { font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.em-ladder .em-track { background: var(--line); }
+
+/* Connection cards */
+.em-link { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-width: 0; transition: border-color .12s, box-shadow .12s, transform .12s; }
+.em-link:hover { border-color: var(--cobalt); box-shadow: 0 4px 14px rgba(31, 79, 168, .10); transform: translateY(-1px); }
+.em-link h3 { font-size: 16px; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; margin: 0; }
+.em-link p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.em-link-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 10px; }
+.em-link-pair div { font-size: 11.5px; color: var(--ink-3); min-width: 0; }
+.em-link-pair b { display: block; font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.em-more { margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--cobalt); }
+
+/* Tables */
+.em-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 0 0 12px; }
+.em-input, .em-select { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; min-width: 0; }
+.em-input { width: 220px; max-width: 100%; }
+.em-count { font-size: 12.5px; color: var(--ink-3); margin-left: auto; }
+.em-tablewrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); max-height: 72vh; }
+.em-table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.em-table th { position: sticky; top: 0; z-index: 1; background: var(--panel); text-align: left; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); font-weight: 800; padding: 10px 12px; box-shadow: inset 0 -1px 0 var(--line); white-space: nowrap; }
+.em-table th button { background: none; border: 0; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; font-weight: inherit; cursor: pointer; }
+.em-table th button:hover { color: var(--cobalt); }
+.em-table td { padding: 8px 12px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.em-table td.wrap { white-space: normal; min-width: 180px; }
+.em-table tbody tr[tabindex] { cursor: pointer; } .em-table tbody tr[tabindex]:hover { background: var(--cobalt-wash); }
+.em-table tr.em-group td { background: var(--wall); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--cobalt); font-weight: 800; }
+.em-table .num { text-align: right; } .em-table td.up { color: var(--up); } .em-table td.down { color: var(--down); }
+.em-table td b { font-weight: 700; }
+
+/* Sources */
+.em-method { border-top: 1px solid var(--line); padding: 12px 0; }
+.em-method summary, .em-acc summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+.em-method p, .em-method li { max-width: 74ch; color: var(--ink-2); margin: 8px 0 0; }
+.em-method ul { padding-left: 18px; margin: 4px 0 0; }
+.em a, .em-drawer a { color: var(--cobalt); text-underline-offset: 2px; }
+.em-foot { padding-block: 20px 48px; font-size: 12.5px; color: var(--ink-3); }
+
+/* Detail panel */
+.em-drawer { --wall: #FBFAF6; --panel: #FFFFFF; --ink: #14161F; --ink-2: #4E5364; --ink-3: #7C8191; --line: #E4E1D8; --line-2: #EFECE4; --cobalt: #1F4FA8; --cobalt-wash: #EAF0FA; --ochre: #C27F0A; --marigold: #F0B429; --up: #1E7B4F; --down: #B5263A;
+  --sans: var(--font-anthropic-sans, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-family: var(--sans); font-size: 15px; line-height: 1.5; color: var(--ink); background: var(--panel); border: 0; padding: 0; margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(600px, 100vw); max-width: 100vw; box-shadow: -12px 0 40px rgba(20, 22, 31, .22); overflow: hidden; color-scheme: light; }
+.em-drawer[open] { display: flex; flex-direction: column; animation: em-in .18s ease-out; }
+.em-drawer::backdrop { background: rgba(20, 22, 31, .38); }
+@keyframes em-in { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .em-drawer[open] { animation: none; } .em-tile, .em-link { transition: none; } }
+.em-dhead { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 18px 22px 12px; border-top: 5px solid var(--cobalt); }
+.em-dbody { padding: 0 22px 28px; overflow-y: auto; flex: 1 1 auto; }
+.em-kicker { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; margin: 0 0 2px; }
+.em-h3 { font-size: 22px; font-weight: 800; letter-spacing: -.015em; line-height: 1.2; margin: 0; }
+.em-x { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-size: 18px; line-height: 1; }
+.em-x:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.em-lede { font-size: 15.5px; margin: 0 0 12px; }
+.em-callout { border-left: 4px solid var(--cobalt); background: var(--cobalt-wash); padding: 10px 14px; margin: 0 0 14px; font-size: 15px; font-weight: 600; border-radius: 0 6px 6px 0; }
+.em-acc { border-top: 1px solid var(--line); padding: 10px 0; }
+.em-acc:last-of-type { border-bottom: 1px solid var(--line); }
+.em-acc summary { font-size: 14px; }
+.em-acc p { margin: 6px 0 2px; color: var(--ink-2); font-size: 14.5px; }
+.em-dlabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; color: var(--ink-3); margin: 18px 0 6px; }
+.em-badge { display: inline-block; font-size: 10.5px; letter-spacing: .06em; font-weight: 800; border: 1px solid var(--ink-3); color: var(--ink-2); border-radius: 4px; padding: 0 5px; vertical-align: 1px; }
+.em-src { font-size: 13px; color: var(--ink-2); margin: 12px 0 0; overflow-wrap: anywhere; }
+.em-drow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 14px 0 4px; }
+.em-bars { display: grid; gap: 6px; }
+.em-brow { display: grid; grid-template-columns: minmax(90px, 150px) minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 13px; }
+.em-btrack { background: var(--cobalt-wash); height: 12px; border-radius: 3px; } .em-bfill { background: var(--cobalt); height: 12px; border-radius: 0 3px 3px 0; }
+.em-brow span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.em-li.sec { grid-template-columns: minmax(0, 1fr) 40px minmax(50px, .7fr) 58px; }
+.em-li-w { font-size: 12px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+.em-g3.wide1 { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 980px) { .em-g3.wide1 { grid-template-columns: minmax(0, 1fr); } }
+.em-seg { flex-wrap: wrap; } .em-ctl { min-width: 0; max-width: 100%; }
+.em-empty { padding: 26px 12px; text-align: center; color: var(--ink-3); }
 </style>
 
 <div class="em">
   <header class="em-head">
     <div class="em-wrap">
-      <div class="em-head-text">
-        <p class="em-eyebrow">Public data, read together</p>
-        <h1 class="em-title" id="em-title">US Economy Monitor</h1>
-        <p class="em-lead">The indicators that describe the American economy, each traced to the agency that published it and explained by what it changes next.</p>
-        <p class="em-stamp">Data retrieved <span data-draw="retrieved" data-source="indicators">…</span>. Each figure shows the period it covers.</p>
-      </div>
-      <svg class="em-flora" viewBox="0 0 150 150" role="img" aria-label="Marigold and leaves">
+      <svg class="em-flora" viewBox="0 0 150 150" aria-hidden="true">
         <g fill="#2F7A52"><ellipse cx="38" cy="104" rx="30" ry="11" transform="rotate(-38 38 104)"/><ellipse cx="112" cy="104" rx="30" ry="11" transform="rotate(38 112 104)"/><ellipse cx="75" cy="124" rx="11" ry="24"/></g>
         <g fill="#F0B429"><circle cx="75" cy="38" r="15"/><circle cx="103" cy="52" r="15"/><circle cx="108" cy="82" r="15"/><circle cx="75" cy="98" r="15"/><circle cx="42" cy="82" r="15"/><circle cx="47" cy="52" r="15"/></g>
         <circle cx="75" cy="68" r="17" fill="#C9357A"/><circle cx="75" cy="68" r="7" fill="#B5263A"/>
       </svg>
+      <div>
+        <h1 class="em-title" id="em-title">US Economy Monitor</h1>
+        <p class="em-stamp" id="em-stamp"></p>
+      </div>
     </div>
   </header>
   <div class="em-ribbon"></div>
 
-  <nav class="em-nav" aria-label="Sections">
-    <div class="em-wrap">
-      <button type="button" class="em-navbtn" data-goto="em-summary">Where things stand</button>
-      <button type="button" class="em-navbtn" data-goto="em-links">How the numbers connect</button>
-      <button type="button" class="em-navbtn" data-goto="em-indicators">Indicators by theme</button>
-      <button type="button" class="em-navbtn" data-goto="em-table">Latest data</button>
-      <button type="button" class="em-navbtn" data-goto="em-method">Sources and method</button>
+  <nav class="em-tabs" aria-label="Sections">
+    <div class="em-wrap" role="tablist">
+      <button type="button" class="em-tab" role="tab" data-tab="overview">Overview</button>
+      <button type="button" class="em-tab" role="tab" data-tab="markets">Markets</button>
+      <button type="button" class="em-tab" role="tab" data-tab="indicators">Indicators</button>
+      <button type="button" class="em-tab" role="tab" data-tab="connections">Connections</button>
+      <button type="button" class="em-tab" role="tab" data-tab="data">Data tables</button>
+      <button type="button" class="em-tab" role="tab" data-tab="sources">Sources</button>
     </div>
   </nav>
 
-  <section class="em-sec" id="em-summary">
-    <div class="em-wrap">
-      <h2 class="em-h2">Where things stand</h2>
-      <p class="em-sub">Written from the latest release of each series. The sentences change when the data does.</p>
-      <div class="em-summary" data-draw="summary" data-source="summary"></div>
-    </div>
-  </section>
-
-  <section class="em-sec" id="em-links">
-    <div class="em-wrap">
-      <h2 class="em-h2">How the numbers connect</h2>
-      <p class="em-sub">Each relationship below pairs two series, states what the pair shows today, and traces what follows from it.</p>
-      <div class="em-chips" data-draw="linklist" data-source="links" role="group" aria-label="Relationships"></div>
-      <article class="em-card" id="em-link-detail" data-draw="linkdetail" data-source="links series indicators"></article>
-    </div>
-  </section>
-
-  <section class="em-sec" id="em-indicators">
-    <div class="em-wrap">
-      <h2 class="em-h2">Indicators by theme</h2>
-      <p class="em-sub">Choose a theme, then an indicator. Each opens with its history, its seasonal adjustment, and its first-order and second-order consequences.</p>
-      <div class="em-controls">
-        <div class="em-chips" role="group" aria-label="Theme">
-          <button type="button" class="em-chip" data-theme-btn="all" aria-pressed="true">All</button>
-          <button type="button" class="em-chip" data-theme-btn="growth" aria-pressed="false">Growth</button>
-          <button type="button" class="em-chip" data-theme-btn="labor" aria-pressed="false">Labor</button>
-          <button type="button" class="em-chip" data-theme-btn="prices" aria-pressed="false">Prices</button>
-          <button type="button" class="em-chip" data-theme-btn="consumer" aria-pressed="false">Consumer</button>
-          <button type="button" class="em-chip" data-theme-btn="housing" aria-pressed="false">Housing</button>
-          <button type="button" class="em-chip" data-theme-btn="rates" aria-pressed="false">Money and rates</button>
-          <button type="button" class="em-chip" data-theme-btn="fiscal" aria-pressed="false">Public finances</button>
-          <button type="button" class="em-chip" data-theme-btn="ai" aria-pressed="false">AI in business</button>
+  <main data-draw="app">
+    <section class="em-panel" id="p-overview" role="tabpanel" hidden>
+      <div class="em-wrap">
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Markets</h2><p class="em-sub" id="ov-mkt-sub"></p></div></div>
+          <div class="em-grid em-g5" id="ov-markets"></div>
         </div>
-        <div class="em-chips" role="group" aria-label="History shown">
-          <button type="button" class="em-chip em-chip-sm" data-range-btn="3" aria-pressed="false">3 years</button>
-          <button type="button" class="em-chip em-chip-sm" data-range-btn="5" aria-pressed="false">5 years</button>
-          <button type="button" class="em-chip em-chip-sm" data-range-btn="10" aria-pressed="true">10 years</button>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Economy</h2><p class="em-sub">Latest reading and ten-year trend. Select any line for its history and context.</p></div></div>
+          <div class="em-grid em-gcards" id="ov-themes"></div>
+        </div>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Ten-year rank</h2><p class="em-sub">Where the latest reading falls among the past ten years of the same series.</p></div></div>
+          <div class="em-card"><div class="em-rank" id="ov-rank"></div></div>
         </div>
       </div>
-      <div class="em-tiles" data-draw="tiles" data-source="indicators series"></div>
-      <article class="em-card" id="em-ind-detail" data-draw="detail" data-source="indicators series ramp"></article>
-    </div>
-  </section>
+    </section>
 
-  <section class="em-sec" id="em-table">
-    <div class="em-wrap">
-      <h2 class="em-h2">Latest data</h2>
-      <p class="em-sub">Every indicator in one table. SA is seasonally adjusted, NSA is not, SAAR is seasonally adjusted at an annual rate. Select a row to open it.</p>
-      <div class="em-tablewrap">
-        <table class="em-table" data-source="indicators" data-row-key="id">
-          <thead><tr>
-            <th data-field="name">Indicator</th><th data-field="period">Period</th><th class="num" data-field="latest">Latest</th>
-            <th class="num" data-field="prior">Prior</th><th class="num" data-field="year_ago">Year ago</th>
-            <th data-field="sa">Adj.</th><th data-field="source">Source</th>
-          </tr></thead>
-          <tbody data-draw="table"></tbody>
-        </table>
+    <section class="em-panel" id="p-markets" role="tabpanel" hidden>
+      <div class="em-bar"><div class="em-wrap">
+        <div class="em-ctl"><span class="em-seglabel">Index</span><div class="em-seg" id="mk-index" role="group" aria-label="Index"></div></div>
+        <div class="em-ctl"><span class="em-seglabel">Period</span><div class="em-seg" id="mk-period" role="group" aria-label="Period"></div></div>
+        <span class="em-asof" id="mk-asof"></span>
+      </div></div>
+      <div class="em-wrap">
+        <div class="em-sec">
+          <div class="em-sechead"><h2 class="em-h2">Indices</h2></div>
+          <div class="em-grid em-g3" id="mk-cards"></div>
+          <div class="em-card" style="margin-top:12px">
+            <h3 class="em-card-h">Relative performance <span id="mk-rel-sub"></span></h3>
+            <div class="em-legend" id="mk-rel-legend"></div>
+            <div class="em-chart" id="mk-rel" style="min-height:260px"></div>
+          </div>
+        </div>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2" id="mk-set-title">Sectors and companies</h2><p class="em-sub" id="mk-set-sub"></p></div><div class="em-scale" id="mk-scale"></div></div>
+          <div class="em-card"><div class="em-map" id="mk-map"></div></div>
+          <div class="em-grid em-g3 wide1" style="margin-top:12px">
+            <div class="em-card"><h3 class="em-card-h">Sectors <span>GICS</span></h3><div class="em-list" id="mk-sectors"></div></div>
+            <div class="em-card"><h3 class="em-card-h">Leaders</h3><div class="em-list" id="mk-leaders"></div></div>
+            <div class="em-card"><h3 class="em-card-h">Laggards</h3><div class="em-list" id="mk-laggards"></div></div>
+          </div>
+          <p class="em-note" id="mk-set-note"></p>
+        </div>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Credit spreads</h2><p class="em-sub">Extra yield over Treasuries that corporate bonds pay, in basis points. Wider spreads mean lenders want more for the risk.</p></div></div>
+          <div class="em-grid em-g3 stack" id="mk-credit"></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="em-sec" id="em-method">
-    <div class="em-wrap">
-      <h2 class="em-h2">Sources and method</h2>
-      <p class="em-sub">What is measured, where it comes from, and what this page does and does not claim.</p>
-      <details class="em-method" open>
-        <summary>Where the data comes from</summary>
-        <p>Every series is pulled from the agency that produces it. Labor and price data come from the Bureau of Labor Statistics. Treasury yields, federal debt, the deficit and the average rate on federal debt come from the US Treasury. The federal funds rate comes from the Federal Reserve Bank of New York. Housing starts, permits, retail sales and business applications come from the Census Bureau. Mortgage rates come from Freddie Mac, and consumer sentiment from the University of Michigan.</p>
-        <p>GDP, the PCE price index, real consumer spending and the saving rate are Bureau of Economic Analysis series, and industrial production is a Federal Reserve Board series. These five series are read through DBnomics, an open mirror of the official releases. Business AI adoption comes from the Ramp AI Index and was read from Ramp's published page by hand; it does not refresh with the rest.</p>
-        <p>Most of these series are also carried on FRED, the St. Louis Fed's database, under FRED's own series names.</p>
-      </details>
-      <details class="em-method">
-        <summary>How to read seasonal adjustment</summary>
-        <p>Many series move with the calendar. Retailers hire every November, construction slows every January, and tax receipts arrive every April. Seasonal adjustment estimates that pattern and removes it so one month can be compared with the next. The adjustment is an estimate, and agencies revise it every year, which is one reason past months change.</p>
-        <ul>
-          <li>SA: seasonally adjusted. Month-to-month changes are meaningful.</li>
-          <li>SAAR: seasonally adjusted and scaled to an annual rate. A quarter of 0.5% growth is reported as about 2%.</li>
-          <li>NSA: not adjusted. Where a series has a seasonal pattern, compare with the same month a year earlier. Market rates are NSA because they have no pattern to remove.</li>
-        </ul>
-        <p>CPI and producer price inflation on this page are 12-month changes computed from unadjusted indexes, which is how the Bureau of Labor Statistics states them. Core PCE uses the Bureau of Economic Analysis's adjusted index. Each indicator carries its own note on how adjustment affects its reading.</p>
-      </details>
-      <details class="em-method">
-        <summary>How the readings are computed</summary>
-        <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series by a script that runs after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages; the headline shows the latest daily or weekly figure. The percentile places the latest value among readings from the past ten years.</p>
-        <p>The sentences under "Where things stand" and the reading for each relationship are generated from the numbers by fixed rules. The explanations of mechanism, first-order and second-order effects are written text describing standard economic relationships. They do not forecast.</p>
-        <p>Correlations are computed on monthly data since 2018. That window contains one pandemic and one inflation cycle, which dominate the result. A correlation describes how two series have moved together. It does not show that one causes the other.</p>
-      </details>
-      <details class="em-method">
-        <summary>Known gaps</summary>
-        <p>Federal statistical agencies did not collect some October 2025 data during the lapse in appropriations. Those months appear as breaks in the affected charts, and year-over-year comparisons that need them are left blank. Retail sales are shown in current dollars. The shaded band on each chart marks the 2020 recession as dated by the National Bureau of Economic Research.</p>
-        <p>This page is for information. It is not investment advice.</p>
-      </details>
-    </div>
-  </section>
-  <div class="em-wrap em-foot">US Economy Monitor. Built on public data. Figures are the agencies' own and are subject to their revisions.</div>
+    <section class="em-panel" id="p-indicators" role="tabpanel" hidden>
+      <div class="em-bar"><div class="em-wrap">
+        <div class="em-ctl"><span class="em-seglabel">Theme</span><div class="em-seg" id="in-theme" role="group" aria-label="Theme"></div></div>
+        <div class="em-ctl"><span class="em-seglabel">Trend</span><div class="em-seg" data-range role="group" aria-label="Years of history"></div></div>
+      </div></div>
+      <div class="em-wrap"><div class="em-sec"><div class="em-grid em-gtiles" id="in-tiles"></div></div></div>
+    </section>
+
+    <section class="em-panel" id="p-connections" role="tabpanel" hidden>
+      <div class="em-wrap">
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">How the numbers connect</h2><p class="em-sub">Ten pairs of series that move each other. Select one for the charts and the mechanism.</p></div></div>
+          <div class="em-grid em-gcards" id="cx-cards"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="em-panel" id="p-data" role="tabpanel" hidden>
+      <div class="em-bar"><div class="em-wrap">
+        <div class="em-ctl"><span class="em-seglabel">Table</span><div class="em-seg" id="dt-which" role="group" aria-label="Table"></div></div>
+      </div></div>
+      <div class="em-wrap"><div class="em-sec">
+        <div class="em-tools" id="dt-tools"></div>
+        <div class="em-tablewrap"><table class="em-table" id="dt-table"></table></div>
+        <p class="em-note" id="dt-note"></p>
+      </div></div>
+    </section>
+
+    <section class="em-panel" id="p-sources" role="tabpanel" hidden>
+      <div class="em-wrap"><div class="em-sec">
+        <div class="em-sechead"><h2 class="em-h2">Sources and method</h2></div>
+        <details class="em-method" open>
+          <summary>Economic data</summary>
+          <p>Each series comes from the agency that produces it. Labor and price data: Bureau of Labor Statistics. Treasury yields, federal debt, the deficit and the average rate on federal debt: US Treasury. Federal funds rate: Federal Reserve Bank of New York. Housing starts, permits, retail sales and business applications: Census Bureau. Mortgage rates: Freddie Mac. Consumer sentiment: University of Michigan.</p>
+          <p>GDP, the PCE price index, real consumer spending and the saving rate are Bureau of Economic Analysis series, and industrial production is a Federal Reserve Board series. These five are read through DBnomics, an open mirror of the official releases. Business AI adoption is the Ramp AI Index, read from Ramp's published page by hand. It does not refresh with the rest.</p>
+        </details>
+        <details class="em-method" open>
+          <summary>Market data</summary>
+          <p>Index levels and share prices are daily closes from Yahoo Finance. Returns are price returns and exclude dividends.</p>
+          <p>Index members and weights come from the daily holdings of the funds that track each index: SPY for the S&amp;P 500, QQQ for the Nasdaq-100 and DIA for the Dow. The Nasdaq Composite holds more than 3,000 stocks, so its company view uses the Nasdaq-100.</p>
+          <p>Sectors follow the Global Industry Classification Standard (GICS) that S&amp;P and MSCI maintain. S&amp;P 500 members carry the sector and sub-industry listed in Wikipedia's constituent table. Fifteen Nasdaq-100 companies outside the S&amp;P 500 were classified by hand and are listed in <code>scripts/refresh_markets.py</code>.</p>
+          <p>A sector's return is the weighted average of today's members, each weighted by its share of the index at the start of the period. Companies that left an index during the period are not counted, so sector returns over a year run higher than the index itself.</p>
+          <p>Credit spreads are ICE BofA option-adjusted spreads, read from FRED. FRED carries three years of history for these series, so ranges and ranks cover three years.</p>
+        </details>
+        <details class="em-method">
+          <summary>Seasonal adjustment</summary>
+          <p>Many series move with the calendar. Seasonal adjustment estimates that pattern and removes it so one month can be compared with the next. Agencies revise the adjustment every year, which is one reason past months change.</p>
+          <ul>
+            <li>SA: seasonally adjusted. Month-to-month changes are meaningful.</li>
+            <li>SAAR: seasonally adjusted and scaled to an annual rate. A quarter of 0.5% growth is reported as about 2%.</li>
+            <li>NSA: not adjusted. Compare with the same month a year earlier. Market rates are NSA because they have no seasonal pattern.</li>
+          </ul>
+          <p>CPI and producer price inflation are 12-month changes computed from unadjusted indexes, which is how the Bureau of Labor Statistics states them. Core PCE uses the Bureau of Economic Analysis's adjusted index.</p>
+        </details>
+        <details class="em-method">
+          <summary>How the readings are computed</summary>
+          <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages, and the headline shows the latest daily or weekly figure. The ten-year rank is the share of readings from the past ten years at or below the latest one.</p>
+          <p>Correlations use monthly data since 2018. That window holds one pandemic and one inflation cycle, which dominate the result. A correlation shows how two series moved together. It does not show that one causes the other.</p>
+          <p>The explanations of mechanism and effects describe standard economic relationships. They do not forecast.</p>
+        </details>
+        <details class="em-method">
+          <summary>Known gaps</summary>
+          <p>Federal statistical agencies did not collect some October 2025 data during the lapse in appropriations. Those months appear as breaks in the affected charts, and year-over-year comparisons that need them are blank. Retail sales are in current dollars. The shaded band on economic charts marks the 2020 recession as dated by the National Bureau of Economic Research.</p>
+          <p>This page is for information. It is not investment advice.</p>
+        </details>
+      </div></div>
+    </section>
+  </main>
+  <div class="em-wrap em-foot">US Economy Monitor. Built on public data. Figures are subject to their publishers' revisions.</div>
+
+  <dialog class="em-drawer" id="em-drawer" aria-labelledby="em-dtitle">
+    <div class="em-dhead"><div id="em-dheadtext"></div><button type="button" class="em-x" id="em-dclose" aria-label="Close">×</button></div>
+    <div class="em-dbody" id="em-dbody"></div>
+  </dialog>
 </div>
 
+<script src="markets-data.js"></script>
 <script>
 (() => {
-  const state = { theme: 'all', ind: 'unrate', link: 'policy_housing', range: 10 };
-  const C = { a: '#1F4FA8', b: '#C27F0A', ink: '#1B1D26', grid: '#E4E1D8', band: '#F1EEE4', dot: '#F0B429' };
+  const M = typeof MARKETS !== 'undefined' ? MARKETS : null;
+  const TABS = ['overview', 'markets', 'indicators', 'connections', 'data', 'sources'];
   const THEMES = [['growth', 'Growth'], ['labor', 'Labor'], ['prices', 'Prices'], ['consumer', 'Consumer'], ['housing', 'Housing'], ['rates', 'Money and rates'], ['fiscal', 'Public finances'], ['ai', 'AI in business']];
+  const PERIODS = [['d1', '1D', 'day'], ['w1', '1W', 'week'], ['m1', '1M', 'month'], ['m3', '3M', 'three months'], ['ytd', 'YTD', 'year to date'], ['y1', '1Y', 'year']];
+  const CLAMP = { d1: 3, w1: 6, m1: 12, m3: 20, ytd: 40, y1: 50 };
+  const C = { a: '#1F4FA8', b: '#C27F0A', c: '#C9357A', ink: '#14161F', grid: '#E4E1D8', band: '#F1EEE4', dot: '#F0B429', up: '#1E7B4F', down: '#B5263A', mid: '#ECE9E1' };
+  const IDX_COLOR = { sp500: C.a, nasdaq: C.b, dow: C.c };
+  const state = { tab: 'overview', theme: 'all', range: 10, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [] };
+
+  const $ = (id) => document.getElementById(id);
   const utc = (s) => new Date(s + (s.length === 10 ? 'T00:00:00Z' : ''));
-  const fMon = d3.utcFormat('%b %Y');
+  const fMon = d3.utcFormat('%b %Y'), fDay = d3.utcFormat('%b %-d, %Y');
   const num = (v) => (v === null || v === undefined || v === '' ? null : +v);
   const list = (v) => (Array.isArray(v) ? v : typeof v === 'string' && v ? JSON.parse(v) : []);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; };
-  const ok = (id) => dash.data(id).status === 'ok';
-  const rows = (id) => (ok(id) ? dash.data(id).data : []);
+  const btn = (cls, text, fn) => { const b = el('button', cls, text); b.type = 'button'; if (fn) b.onclick = fn; return b; };
+  const rows = (id) => (dash.data(id).status === 'ok' ? dash.data(id).data : []);
+  const themeName = (id) => (THEMES.find((x) => x[0] === id) || [0, id])[1];
+  const minus = (s) => s.replace('-', '−');
 
   function fmt(v, unit, dec, signed) {
     if (v === null || Number.isNaN(v)) return 'n/a';
-    const s = d3.format((signed && +v.toFixed(dec) !== 0 ? '+' : '') + ',.' + dec + 'f')(v).replace('-', '−');
+    const s = minus(d3.format((signed && +v.toFixed(dec) !== 0 ? '+' : '') + ',.' + dec + 'f')(v));
     if (unit === '%') return s + '%';
     if (unit === 'pts') return s + ' pts';
     if (unit === 'K') return s + 'K';
     if (unit === 'M') return s + 'M';
     if (unit === '$T') return (signed ? s.replace(/^([+−]?)/, '$1$') : '$' + s) + 'T';
-    if (unit === 'x') return s;
+    if (unit === 'bp') return s + ' bp';
     return s;
   }
-  const chgUnit = (u) => (u === '%' ? 'pts' : u === 'idx' || u === 'x' ? '' : u);
-  function deltaClass(r, chg) {
-    if (!r.good || !chg) return '';
-    return (chg > 0) === (r.good === 'up') ? ' good' : ' bad';
-  }
+  const pct = (v, dec) => (v === null || v === undefined ? 'n/a' : fmt(v, '%', dec === undefined ? 2 : dec, true));
+  const dir = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
   const arrow = (c) => (c > 0 ? '▲ ' : c < 0 ? '▼ ' : '');
+  const chgUnit = (u) => (u === '%' ? 'pts' : u === 'idx' || u === 'x' ? '' : u);
+  // For economic series colour follows what the move means, not its sign.
+  const goodClass = (r, chg) => (!r.good || !chg ? '' : (chg > 0) === (r.good === 'up') ? ' up' : ' down');
 
   let cache = { ref: null, map: null };
   function series(id) {
@@ -285,7 +449,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     if (d.status !== 'ok') return [];
     if (cache.ref !== d.data) {
       const m = new Map();
-      for (const r of d.data) { const v = +r.value; if (!m.has(r.id)) m.set(r.id, []); m.get(r.id).push({ d: utc(r.date), v }); }
+      for (const r of d.data) { if (!m.has(r.id)) m.set(r.id, []); m.get(r.id).push({ d: utc(r.date), v: +r.value }); }
       cache = { ref: d.data, map: m };
     }
     return cache.map.get(id) || [];
@@ -302,40 +466,45 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     for (let i = 1; i < pts.length; i++) { if (pts[i].d - pts[i - 1].d > typical * 1.7) out.push([]); out[out.length - 1].push(pts[i]); }
     return out;
   }
+  const byId = () => new Map(rows('indicators').map((r) => [r.id, r]));
+  const later = (fn) => requestAnimationFrame(fn);
+
+  /* ---------- charts ---------- */
 
   // One line, one axis. Spark mode drops axes and hover.
   function lineChart(box, pts, o) {
     box.replaceChildren();
     const W = box.clientWidth || 300, H = o.h || 200;
-    if (!pts.length) { box.append(el('p', 'em-note', o.empty || 'No history is published for this series.')); return; }
+    if (!pts.length) { if (!o.spark) box.append(el('p', 'em-note', 'No history is published for this series.')); return; }
     const spark = !!o.spark;
-    const yFmt = (v) => fmt(v, o.unit === '$T' ? '$T' : o.unit, o.dec);
+    const yFmt = (v) => fmt(v, o.unit, o.dec);
+    const tFmt = o.tfmt || fMon;
     let lo = d3.min(pts, (p) => p.v), hi = d3.max(pts, (p) => p.v);
     if (o.zero && lo > 0) lo = 0; if (o.zero && hi < 0) hi = 0;
     if (o.ref !== undefined) { lo = Math.min(lo, o.ref); hi = Math.max(hi, o.ref); }
     const pad = (hi - lo || 1) * 0.08; lo -= pad; hi += pad;
     const endTxt = yFmt(pts[pts.length - 1].v);
-    const m = spark ? { t: 3, r: 5, b: 3, l: 1 } : { t: 10, r: Math.max(46, endTxt.length * 7.4 + 14), b: 22, l: 46 };
+    const m = spark ? { t: 3, r: 5, b: 3, l: 1 } : { t: 10, r: Math.max(46, endTxt.length * 7.6 + 14), b: 22, l: 46 };
     const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.d)).range([m.l, W - m.r]);
     const y = d3.scaleLinear().domain([lo, hi]).range([H - m.b, m.t]);
     const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
-      .attr('aria-label', `${o.name}, ${fMon(pts[0].d)} to ${fMon(pts[pts.length - 1].d)}. Latest ${endTxt}.`);
+      .attr('aria-label', `${o.name}, ${tFmt(pts[0].d)} to ${tFmt(pts[pts.length - 1].d)}. Latest ${endTxt}.`);
     if (!spark) {
       const r0 = utc('2020-02-01'), r1 = utc('2020-04-30');
-      if (x.domain()[0] < r1) svg.append('rect').attr('x', Math.max(m.l, x(r0))).attr('y', m.t).attr('width', Math.max(0, x(r1) - Math.max(m.l, x(r0)))).attr('height', H - m.b - m.t).attr('fill', C.band);
+      if (o.band && x.domain()[0] < r1) svg.append('rect').attr('x', Math.max(m.l, x(r0))).attr('y', m.t).attr('width', Math.max(0, x(r1) - Math.max(m.l, x(r0)))).attr('height', H - m.b - m.t).attr('fill', C.band);
       const ticks = y.ticks(4);
-      svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid).attr('stroke-width', 1);
-      svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => fmt(d, o.unit, Math.min(o.dec, 1)));
-      const xt = x.ticks(Math.max(2, Math.floor(W / 110)));
-      svg.append('g').selectAll('text').data(xt).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle').text(d3.utcFormat('%Y'));
-      if (lo < 0 && hi > 0) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', C.ink).attr('stroke-width', 1).attr('opacity', 0.45);
+      svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid);
+      svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => fmt(d, o.unit === 'bp' ? '' : o.unit, o.tickDec !== undefined ? o.tickDec : Math.min(o.dec, 1)));
+      const span = x.domain()[1] - x.domain()[0], xt = x.ticks(Math.max(2, Math.floor(W / 110)));
+      svg.append('g').selectAll('text').data(xt).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle').text(d3.utcFormat(span > 2.2 * 365 * 864e5 ? '%Y' : "%b '%y"));
+      if (lo < 0 && hi > 0) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', C.ink).attr('opacity', 0.45);
       if (o.ref !== undefined) {
         svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(o.ref)).attr('y2', y(o.ref)).attr('stroke', C.ink).attr('stroke-dasharray', '3 3').attr('opacity', 0.6);
-        svg.append('text').attr('class', 'em-tick').attr('x', W - m.r).attr('y', y(o.ref) - 4).attr('text-anchor', 'end').text(o.refLabel);
+        svg.append('text').attr('class', 'em-tick').attr('x', m.l + 4).attr('y', y(o.ref) - 4).text(o.refLabel);
       }
     }
     const line = d3.line().x((p) => x(p.d)).y((p) => y(p.v));
-    const segs = segments(pts);
+    const segs = o.gaps === false ? [pts] : segments(pts);
     if (!spark) {
       const base = y(Math.max(lo, Math.min(hi, 0)));
       const area = d3.area().x((p) => x(p.d)).y0(lo < 0 && hi > 0 ? base : H - m.b).y1((p) => y(p.v));
@@ -347,17 +516,17 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     if (spark) return;
     svg.append('text').attr('class', 'em-endlabel').attr('x', x(last.d) + 9).attr('y', y(last.v) + 4).text(endTxt);
     const hover = svg.append('g').attr('display', 'none');
-    hover.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C.ink).attr('stroke-width', 1).attr('opacity', 0.5);
+    hover.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C.ink).attr('opacity', 0.5);
     hover.append('circle').attr('r', 4).attr('fill', '#fff').attr('stroke', o.color).attr('stroke-width', 2);
     const tip = el('div', 'em-tip'); tip.hidden = true; box.append(tip);
     const bis = d3.bisector((p) => p.d).center;
     const show = (date) => {
       const p = pts[bis(pts, date)]; if (!p) return;
       hover.attr('display', null); hover.select('line').attr('x1', x(p.d)).attr('x2', x(p.d)); hover.select('circle').attr('cx', x(p.d)).attr('cy', y(p.v));
-      tip.replaceChildren(el('b', '', yFmt(p.v)), document.createTextNode(' · ' + (o.quarterly ? 'Q' + (Math.floor(p.d.getUTCMonth() / 3) + 1) + ' ' + p.d.getUTCFullYear() : fMon(p.d))));
+      tip.replaceChildren(el('b', '', yFmt(p.v)), el('span', 't', ' · ' + (o.quarterly ? 'Q' + (Math.floor(p.d.getUTCMonth() / 3) + 1) + ' ' + p.d.getUTCFullYear() : tFmt(p.d))));
       tip.hidden = false;
       const tw = tip.offsetWidth, left = Math.min(Math.max(0, x(p.d) - tw / 2), W - tw);
-      tip.style.left = left + 'px'; tip.style.top = Math.max(0, y(p.v) - 38) + 'px';
+      tip.style.left = left + 'px'; tip.style.top = Math.max(0, y(p.v) - 40) + 'px';
     };
     const hide = () => { hover.attr('display', 'none'); tip.hidden = true; };
     box._show = show; box._hide = hide;
@@ -366,199 +535,494 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       .on('pointerleave', () => { hide(); (o.peers ? o.peers() : []).forEach((b) => b._hide && b._hide()); });
   }
 
-  const byId = () => new Map(rows('indicators').map((r) => [r.id, r]));
-  const mark = (e, src, field, where) => { e.dataset.source = src; if (field) e.dataset.field = field; if (where) e.dataset.where = where; return e; };
-  const dash0 = (box) => { box.replaceChildren(document.createTextNode('…')); };
-  function failed(box, ids) {
-    const bad = ids.find((i) => dash.data(i).status === 'error');
-    if (bad) { box.replaceChildren(el('p', 'em-note', 'Failed to load.')); return true; }
-    if (!ids.every(ok)) { box.replaceChildren(); return true; }
-    return false;
+  // Several series on one axis, each rebased to 100 at the first date shown.
+  function multiChart(box, sets, o) {
+    box.replaceChildren();
+    const W = box.clientWidth || 300, H = o.h || 260;
+    sets = sets.filter((s) => s.pts.length > 1).map((s) => ({ ...s, pts: s.pts.map((p) => ({ d: p.d, v: (p.v / s.pts[0].v) * 100 })) }));
+    if (!sets.length) return;
+    const all = sets.flatMap((s) => s.pts);
+    let lo = Math.min(100, d3.min(all, (p) => p.v)), hi = Math.max(100, d3.max(all, (p) => p.v));
+    const pad = (hi - lo || 1) * 0.08; lo -= pad; hi += pad;
+    const m = { t: 10, r: 58, b: 22, l: 40 };
+    const x = d3.scaleUtc().domain(d3.extent(all, (p) => p.d)).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([lo, hi]).range([H - m.b, m.t]);
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+      .attr('aria-label', sets.map((s) => `${s.name} ${pct(s.pts[s.pts.length - 1].v - 100, 1)}`).join(', ') + ` since ${fDay(sets[0].pts[0].d)}.`);
+    const ticks = y.ticks(5);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid);
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => d);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(100)).attr('y2', y(100)).attr('stroke', C.ink).attr('opacity', 0.45);
+    const span = x.domain()[1] - x.domain()[0];
+    svg.append('g').selectAll('text').data(x.ticks(Math.max(2, Math.floor(W / 120)))).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle').text(d3.utcFormat(span > 200 * 864e5 ? "%b '%y" : '%b %-d'));
+    const line = d3.line().x((p) => x(p.d)).y((p) => y(p.v));
+    sets.forEach((s) => svg.append('path').attr('d', line(s.pts)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', 2).attr('stroke-linejoin', 'round'));
+    // End labels, nudged apart so they never overlap.
+    const ends = sets.map((s) => ({ s, y: y(s.pts[s.pts.length - 1].v) })).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+    ends.forEach((e) => {
+      const p = e.s.pts[e.s.pts.length - 1];
+      svg.append('circle').attr('cx', x(p.d)).attr('cy', y(p.v)).attr('r', 4).attr('fill', '#fff').attr('stroke', e.s.color).attr('stroke-width', 2);
+      svg.append('text').attr('class', 'em-endlabel').attr('x', x(p.d) + 8).attr('y', e.y + 4).text(pct(p.v - 100, 1));
+    });
+    const rule = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C.ink).attr('opacity', 0.5).attr('display', 'none');
+    const dots = sets.map((s) => svg.append('circle').attr('r', 4).attr('fill', '#fff').attr('stroke', s.color).attr('stroke-width', 2).attr('display', 'none'));
+    const tip = el('div', 'em-tip'); tip.hidden = true; box.append(tip);
+    const bis = d3.bisector((p) => p.d).center, ref = sets[0].pts;
+    svg.append('rect').attr('x', m.l).attr('y', 0).attr('width', W - m.r - m.l).attr('height', H).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const d = ref[bis(ref, x.invert(d3.pointer(ev)[0]))].d;
+        rule.attr('display', null).attr('x1', x(d)).attr('x2', x(d));
+        tip.replaceChildren(el('div', 't', fDay(d)));
+        sets.forEach((s, i) => {
+          const p = s.pts[bis(s.pts, d)]; dots[i].attr('display', null).attr('cx', x(p.d)).attr('cy', y(p.v));
+          const row = el('div'), key = el('i'); key.style.background = s.color; row.append(key, el('b', '', pct(p.v - 100, 1)), el('span', 't', s.name)); tip.append(row);
+        });
+        tip.hidden = false;
+        const tw = tip.offsetWidth; tip.style.left = Math.min(Math.max(0, x(d) + 12), W - tw) + 'px'; tip.style.top = m.t + 'px';
+      })
+      .on('pointerleave', () => { rule.attr('display', 'none'); dots.forEach((c) => c.attr('display', 'none')); tip.hidden = true; });
   }
-  function chartBlock(parent, r, color, peers, h) {
-    const t = el('div', 'em-chart-title'); const sw = el('span', 'em-swatch'); sw.style.background = color;
-    t.append(sw, el('span', '', r.name), el('span', 'u', unitWords(r)));
-    const box = mark(el('div', 'em-chart'), 'series'); box.style.minHeight = (h || 190) + 'px';
-    parent.append(t, box);
-    const pts = clip(series(r.id), state.range);
-    queueMicrotask(() => lineChart(box, pts, { name: r.name, unit: r.unit, dec: +r.dec, color, h: h || 190, zero: r.unit === 'pts' || /yoy|chg|gdp|productivity/.test(r.id), quarterly: r.freq === 'Q', peers,
+
+  function seg(box, opts, cur, fn) {
+    box.replaceChildren(...opts.map(([v, label]) => { const b = btn('', label, () => fn(v)); b.setAttribute('aria-pressed', String(v === cur)); return b; }));
+  }
+  // A dot on a track: where a value sits between a low and a high.
+  function track(frac) { const t = el('div', 'em-track'), dot = el('i'); dot.style.left = Math.max(1, Math.min(99, frac * 100)) + '%'; t.append(dot); return t; }
+  function delta(r, short) {
+    const chg = num(r.change), d = el('span', 'em-delta' + goodClass(r, chg));
+    d.append(arrow(chg) + fmt(chg, chgUnit(r.unit), +r.dec, true) + ' ', short ? '' : el('small', '', r.prior_label));
+    if (short) d.title = r.prior_label;
+    return d;
+  }
+  const sparkOf = (box, pts, color, name, gaps) => later(() => lineChart(box, pts, { spark: true, h: box.clientHeight || 34, color: color || C.a, unit: '', dec: 1, name, gaps }));
+
+  /* ---------- market helpers ---------- */
+
+  const index = (id) => M.indices.find((x) => x.id === (id || state.index));
+  const hist = (ix) => ix.hist.map(([d, v]) => ({ d: utc(d), v }));
+  const periodLabel = (k) => PERIODS.find((p) => p[0] === (k || state.period));
+  const members = (ix) => Object.entries(M.stocks).filter(([, s]) => s.w[ix.key] !== undefined).map(([t, s]) => ({ t, ...s, wt: s.w[ix.key] }));
+  function periodStart(k) {
+    const end = utc(M.asof), d = new Date(end);
+    if (k === 'ytd') return new Date(Date.UTC(end.getUTCFullYear() - 1, 11, 31));
+    d.setUTCDate(d.getUTCDate() - ({ m3: 91, y1: 365 }[k] || 30));
+    return d;
+  }
+  const heat = (k) => d3.scaleLinear().domain([-CLAMP[k], 0, CLAMP[k]]).range([C.down, C.mid, C.up]).interpolate(d3.interpolateLab).clamp(true);
+
+  function indexCard(ix, onClick, pressed) {
+    const t = btn('em-tile', null, onClick), v = ix[state.period];
+    if (pressed !== undefined) t.setAttribute('aria-pressed', String(pressed));
+    const d = el('span', 'em-delta ' + dir(v)); d.append(arrow(v) + pct(v) + ' ', el('small', '', periodLabel()[1]));
+    const sp = el('span', 'em-chart em-spark');
+    const year = periodStart('y1');
+    t.append(el('span', 'em-idx-name', ix.name), el('span', 'em-idx-level', d3.format(',.2f')(ix.level)), d, sp);
+    sparkOf(sp, hist(ix).filter((p) => p.d >= year), IDX_COLOR[ix.id], ix.name, false);
+    return t;
+  }
+  function spreadTile(s, onClick) {
+    const t = btn('em-tile', null, onClick);
+    // A wider spread is the adverse move, so it takes the "down" colour.
+    const d = el('span', 'em-delta ' + (s.m1 > 0 ? 'down' : s.m1 < 0 ? 'up' : '')); d.append(arrow(s.m1) + fmt(s.m1, 'bp', 0, true) + ' ', el('small', '', '1M'));
+    const sp = el('span', 'em-chart em-spark');
+    t.append(el('span', 'em-idx-name', s.name + ' spread'), el('span', 'em-idx-level', fmt(s.latest, 'bp', 0)), d, sp);
+    sparkOf(sp, s.hist.map(([dd, v]) => ({ d: utc(dd), v })), C.a, s.name + ' spread', false);
+    return t;
+  }
+
+  /* ---------- panels ---------- */
+
+  function overview() {
+    if (M) {
+      $('ov-mkt-sub').textContent = `Close of ${fDay(utc(M.asof))}, change on the day. Select a card for sectors and companies.`;
+      const hy = M.spreads.find((s) => s.id === 'hy'), ig = M.spreads.find((s) => s.id === 'ig');
+      const keep = state.period; state.period = 'd1';
+      $('ov-markets').replaceChildren(...M.indices.map((ix) => indexCard(ix, () => { state.index = ix.id; go('markets'); })),
+        spreadTile(hy, () => go('markets', 'mk-credit')), spreadTile(ig, () => go('markets', 'mk-credit')));
+      state.period = keep;
+    }
+    const ind = byId();
+    $('ov-themes').replaceChildren(...rows('summary').map((s) => {
+      const card = el('div', 'em-card'), body = el('div', 'em-rows');
+      card.append(el('h3', 'em-card-h', s.theme), body);
+      list(s.ids).forEach((id) => {
+        const r = ind.get(id); if (!r) return;
+        const row = btn('em-row', null, () => open('ind', id)), name = el('span', 'em-row-name', r.name), sp = el('span', 'em-chart em-row-spark'), val = el('span', 'em-row-val');
+        name.append(el('small', '', r.period));
+        val.append(el('b', '', fmt(num(r.latest), r.unit, +r.dec)), delta(r, true));
+        row.append(name, sp, val); body.append(row);
+        sparkOf(sp, clip(series(id), 10), C.a, r.name);
+      });
+      return card;
+    }));
+    const groups = THEMES.map(([id, name]) => {
+      const rs = rows('indicators').filter((r) => r.theme === id && num(r.percentile) !== null); if (!rs.length) return null;
+      const g = el('div', 'em-rank-g'); g.append(el('div', 'em-rank-group', name));
+      rs.forEach((r) => {
+        const b = btn('em-rank-row', null, () => open('ind', r.id));
+        b.title = `${r.name}: ${fmt(num(r.latest), r.unit, +r.dec)}, at or above ${r.percentile}% of readings since ${r.window_start}`;
+        b.append(el('span', '', r.name), track(r.percentile / 100), el('span', '', fmt(num(r.latest), r.unit, +r.dec)));
+        g.append(b);
+      });
+      return g;
+    }).filter(Boolean);
+    const ends = el('div', 'em-track-ends'); ends.append(el('span', '', '← Lowest in ten years'), el('span', '', 'Centre mark: median'), el('span', '', 'Highest →'));
+    $('ov-rank').replaceChildren(...groups);
+    $('ov-rank').parentNode.querySelectorAll('.em-track-ends').forEach((e) => e.remove());
+    $('ov-rank').after(ends);
+  }
+
+  function markets() {
+    if (!M) { $('p-markets').querySelector('.em-wrap:last-child').replaceChildren(el('p', 'em-note', 'Market data did not load.')); return; }
+    const ix = index(), k = state.period, pl = periodLabel();
+    seg($('mk-index'), M.indices.map((x) => [x.id, x.id === 'dow' ? 'Dow Jones' : x.name]), state.index, (v) => { state.index = v; markets(); });
+    seg($('mk-period'), PERIODS, k, (v) => { state.period = v; markets(); });
+    $('mk-asof').textContent = 'Close of ' + fDay(utc(M.asof));
+
+    $('mk-cards').replaceChildren(...M.indices.map((x) => {
+      const card = indexCard(x, () => { state.index = x.id; markets(); }, x.id === state.index);
+      const r = el('div', 'em-range'), e = el('div', 'em-track-ends');
+      e.append(el('span', '', '52-week low ' + d3.format(',.0f')(x.lo)), el('b', '', pct((x.level / x.hi - 1) * 100, 1) + ' from high'), el('span', '', 'High ' + d3.format(',.0f')(x.hi)));
+      r.append(track((x.level - x.lo) / (x.hi - x.lo)), e); card.append(r);
+      return card;
+    }));
+
+    const start = periodStart(k), longK = ['d1', 'w1'].includes(k) ? 'm1' : k;
+    $('mk-rel-sub').textContent = `Rebased to 100 on ${fDay(start)}${longK !== k ? ' (one month shown)' : ''}`;
+    $('mk-rel-legend').replaceChildren(...M.indices.map((x) => { const s = el('span'), i = el('i'); i.style.background = IDX_COLOR[x.id]; s.append(i, x.name); return s; }));
+    later(() => multiChart($('mk-rel'), M.indices.map((x) => ({ name: x.name, color: IDX_COLOR[x.id], pts: hist(x).filter((p) => p.d >= start) })), { h: 260 }));
+
+    $('mk-set-title').textContent = ix.set + ' by sector and company';
+    $('mk-set-sub').textContent = `Each box is a company, sized by its weight in the index and coloured by its ${pl[2] === 'year to date' ? 'year-to-date' : 'one-' + pl[2].replace('three months', 'quarter')} return. Select a box or a sector.`.replace('one-quarter', 'three-month');
+    $('mk-set-note').textContent = ix.id === 'nasdaq' ? 'The Nasdaq Composite holds more than 3,000 stocks. This view uses the Nasdaq-100, its 100 largest non-financial companies.' : '';
+    const sc = heat(k), scale = $('mk-scale'), bar = el('i'); bar.style.background = `linear-gradient(90deg, ${C.down}, ${C.mid}, ${C.up})`;
+    scale.replaceChildren(el('span', '', '−' + CLAMP[k] + '%'), bar, el('span', '', '+' + CLAMP[k] + '%'));
+    const ms = members(ix);
+    later(() => marketMap($('mk-map'), ix, ms, sc));
+
+    const secs = ix.sectors.slice().sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9)), smax = d3.max(secs, (s) => Math.abs(s[k] || 0)) || 1;
+    $('mk-sectors').replaceChildren(...secs.map((s) => {
+      const b = btn('em-li sec', null, () => open('sector', ix.id + ':' + s.s)), name = el('span', 'em-li-name', M.sectors[s.s]), hb = el('span', 'em-hbar div'), f = el('i', dir(s[k]));
+      const w = (Math.abs(s[k] || 0) / smax) * 50; f.style.width = w + '%'; f.style.left = (s[k] >= 0 ? 50 : 50 - w) + '%'; hb.append(f);
+      b.title = `${M.sectors[s.s]}: ${s.n} companies, ${d3.format('.1f')(s.w)}% of the index`;
+      b.append(name, el('span', 'em-li-w', d3.format('.1f')(s.w) + '%'), hb, el('span', 'em-li-v ' + dir(s[k]), pct(s[k], 1)));
+      return b;
+    }));
+    const ranked = ms.filter((s) => s[k] !== null).sort((a, b) => b[k] - a[k]);
+    const rank = (box, arr) => {
+      const mx = d3.max(arr, (s) => Math.abs(s[k])) || 1;
+      box.replaceChildren(...arr.map((s) => {
+        const b = btn('em-li', null, () => open('stock', s.t)), name = el('span', 'em-li-name'), hb = el('span', 'em-hbar left'), f = el('i', dir(s[k]));
+        name.append(el('b', '', s.t), el('small', '', s.n)); f.style.width = (Math.abs(s[k]) / mx) * 100 + '%'; hb.append(f);
+        b.title = `${s.n} · ${M.sectors[s.s]}`;
+        b.append(name, hb, el('span', 'em-li-v ' + dir(s[k]), pct(s[k], 1)));
+        return b;
+      }));
+    };
+    rank($('mk-leaders'), ranked.slice(0, 10)); rank($('mk-laggards'), ranked.slice(-10).reverse());
+
+    $('mk-credit').replaceChildren(...['hy', 'ig'].map((id) => {
+      const s = M.spreads.find((x) => x.id === id), card = el('div', 'em-card'), big = el('div', 'em-big', d3.format(',')(s.latest)), stats = el('div', 'em-stats'), box = el('div', 'em-chart');
+      big.append(el('small', '', 'basis points'));
+      const h = el('h3', 'em-card-h', s.name); h.append(el('span', '', fDay(utc(s.asof))));
+      [['1 day', s.d1], ['1 month', s.m1], ['1 year', s.y1]].forEach(([l, v]) => { const c = el('div'); c.append(el('div', 'em-stat-l', l), el('div', 'em-stat-v ' + (v > 0 ? 'down' : v < 0 ? 'up' : ''), fmt(v, 'bp', 0, true))); stats.append(c); });
+      box.style.minHeight = '190px';
+      card.append(h, big, stats, box);
+      later(() => lineChart(box, s.hist.map(([d, v]) => ({ d: utc(d), v })), { h: 190, color: id === 'hy' ? C.a : C.b, unit: 'bp', dec: 0, name: s.name + ' spread', tfmt: fDay, ref: s.med, refLabel: '', gaps: false }));
+      card.append(el('p', 'em-note', `Dashed line: three-year median, ${s.med} bp.`));
+      return card;
+    }), (() => {
+      const card = el('div', 'em-card'), g = el('div', 'em-ladder');
+      const h = el('h3', 'em-card-h', 'By rating'); h.append(el('span', '', 'Position in three-year range'));
+      g.append(el('span', 'h', 'Rating'), el('span', 'h', 'Low to high'), el('span', 'h v', 'Spread'), el('span', 'h c', '1M'));
+      M.spreads.filter((s) => !['hy', 'ig'].includes(s.id)).forEach((s) => {
+        const t = track((s.latest - s.lo) / (s.hi - s.lo)); t.title = `Three-year range ${s.lo} to ${s.hi} bp, median ${s.med}`;
+        g.append(el('b', '', s.name), t, el('span', 'v', d3.format(',')(s.latest)), el('span', 'c', fmt(s.m1, '', 0, true)));
+      });
+      card.append(h, g, el('p', 'em-note', 'AAA to BBB are investment grade. BB and below are high yield.'));
+      return card;
+    })());
+  }
+
+  function marketMap(box, ix, ms, sc) {
+    box.replaceChildren();
+    const W = box.clientWidth, H = box.clientHeight, k = state.period;
+    if (!W) return;
+    const root = d3.hierarchy({ children: ix.sectors.map((s) => ({ sec: s, children: ms.filter((m) => m.s === s.s) })) }).sum((d) => d.wt || 0).sort((a, b) => b.value - a.value);
+    d3.treemap().size([W, H]).paddingTop((d) => (d.depth === 1 ? 17 : 0)).paddingInner((d) => (d.depth === 0 ? 5 : 1)).round(true)(root);
+    const tip = el('div', 'em-tip'); tip.hidden = true;
+    const frag = document.createDocumentFragment();
+    root.children.forEach((g) => {
+      const s = g.data.sec, lab = btn('em-map-sec', null, () => open('sector', ix.id + ':' + s.s)), w = g.x1 - g.x0;
+      if (w < 34 || g.y1 - g.y0 < 30) return;
+      lab.textContent = M.sectors[s.s] + (w > 190 ? '  ' + pct(s[k], 1) : '');
+      lab.style.cssText = `left:${g.x0}px;top:${g.y0}px;width:${w}px`; lab.title = `${M.sectors[s.s]}: ${pct(s[k], 1)}. Open the sector.`;
+      frag.append(lab);
+    });
+    root.leaves().forEach((n) => {
+      const d = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0; if (w < 1 || h < 1) return;
+      const v = d[k], bg = v === null ? C.mid : sc(v), c = btn('em-cell', null, () => open('stock', d.t));
+      c.style.cssText = `left:${n.x0}px;top:${n.y0}px;width:${w}px;height:${h}px;background:${bg};color:${d3.lab(bg).l < 50 ? '#fff' : C.ink}`;
+      c.setAttribute('aria-label', `${d.n}, ${pct(v)}`);
+      if (w > 34 && h > 15) {
+        const fs = Math.max(9.5, Math.min(22, Math.sqrt(w * h) / 5.5)); c.style.fontSize = fs + 'px';
+        c.append(el('b', '', d.t));
+        if (h > fs * 2.5 && w > 40) { const p = el('span', '', pct(v, 1)); p.style.fontSize = Math.max(9, fs * 0.78) + 'px'; c.append(p); }
+      }
+      const show = (ev) => {
+        tip.replaceChildren(el('b', '', `${d.t}  ${pct(v)}`), el('div', 't', d.n), el('div', 't', `${M.sectors[d.s]} · ${d3.format('.2f')(d.wt)}% of index`));
+        tip.hidden = false;
+        const r = box.getBoundingClientRect(), px = ev && ev.clientX ? ev.clientX - r.left : n.x0 + w / 2, py = ev && ev.clientY ? ev.clientY - r.top : n.y0;
+        tip.style.left = Math.min(Math.max(0, px + 14), W - tip.offsetWidth) + 'px'; tip.style.top = Math.max(0, Math.min(H - tip.offsetHeight, py - tip.offsetHeight - 10)) + 'px';
+      };
+      c.onpointermove = show; c.onfocus = () => show(); c.onpointerleave = c.onblur = () => { tip.hidden = true; };
+      frag.append(c);
+    });
+    frag.append(tip); box.append(frag);
+  }
+
+  function indicators() {
+    seg($('in-theme'), [['all', 'All'], ...THEMES], state.theme, (v) => { state.theme = v; indicators(); });
+    ranges();
+    $('in-tiles').replaceChildren(...rows('indicators').filter((r) => state.theme === 'all' || r.theme === state.theme).map((r) => {
+      const t = btn('em-tile', null, () => open('ind', r.id)), sp = el('span', 'em-chart em-spark');
+      t.append(el('span', 'em-tile-name', r.name), el('span', 'em-tile-val', fmt(num(r.latest), r.unit, +r.dec)), delta(r), el('span', 'em-tile-meta', r.period + ' · ' + r.sa), sp);
+      sparkOf(sp, clip(series(r.id), state.range), C.a, r.name);
+      return t;
+    }));
+  }
+  function ranges() {
+    document.querySelectorAll('[data-range]').forEach((b) => seg(b, [[3, '3 years'], [5, '5 years'], [10, '10 years']], state.range, (v) => { state.range = v; if (state.tab === 'indicators') indicators(); if ($('em-drawer').open) drawer(); }));
+  }
+
+  function connections() {
+    const ind = byId();
+    $('cx-cards').replaceChildren(...rows('links').map((l) => {
+      const a = ind.get(l.a), b = ind.get(l.b), card = btn('em-link', null, () => open('link', l.id)), pair = el('div', 'em-link-pair');
+      [[a, C.a], [b, C.b]].forEach(([r, color]) => {
+        if (!r) return;
+        const d = el('div'), sp = el('span', 'em-chart em-spark'); sp.style.display = 'block';
+        d.append(el('b', '', fmt(num(r.latest), r.unit, +r.dec)), r.name, sp); pair.append(d);
+        sparkOf(sp, clip(series(r.id), 10), color, r.name);
+      });
+      card.append(el('h3', '', l.title), el('p', '', l.question), pair, el('span', 'em-more', 'Charts and mechanism →'));
+      return card;
+    }));
+  }
+
+  /* ---------- tables ---------- */
+
+  function table() {
+    const opts = [['econ', 'Economic indicators']]; if (M) opts.push(['stocks', 'Index companies'], ['sectors', 'Sectors'], ['credit', 'Credit spreads']);
+    seg($('dt-which'), opts, state.table, (v) => { state.table = v; state.q = ''; state.sector = 'all'; table(); });
+    const tools = $('dt-tools'), tb = $('dt-table'), note = $('dt-note');
+    tools.replaceChildren(); note.textContent = '';
+    const head = (cols) => { const tr = el('tr'); cols.forEach(([label, cls, key]) => { const th = el('th', cls || ''); if (key) { th.append(btn('', label + (state.sort === key ? (state.dir < 0 ? ' ↓' : ' ↑') : ''), () => { state.dir = state.sort === key ? -state.dir : (key === 't' || key === 'n' ? 1 : -1); state.sort = key; table(); })); th.setAttribute('aria-sort', state.sort === key ? (state.dir < 0 ? 'descending' : 'ascending') : 'none'); } else th.textContent = label; tr.append(th); }); const h = el('thead'); h.append(tr); return h; };
+    const td = (t, c) => el('td', c || '', t), body = el('tbody');
+    const click = (tr, fn) => { tr.tabIndex = 0; tr.onclick = fn; tr.onkeydown = (e) => { if (e.key === 'Enter') fn(); }; };
+    if (state.table === 'econ') {
+      THEMES.forEach(([id, name]) => {
+        const rs = rows('indicators').filter((r) => r.theme === id); if (!rs.length) return;
+        const g = el('tr', 'em-group'), gd = el('td', '', name); gd.colSpan = 8; g.append(gd); body.append(g);
+        rs.forEach((r) => {
+          const tr = el('tr'), dec = +r.dec, chg = num(r.change);
+          tr.append(td(r.name), td(r.period), td(fmt(num(r.latest), r.unit, dec), 'num'), td(fmt(num(r.prior), r.unit, dec), 'num'), td(fmt(chg, chgUnit(r.unit), dec, true), 'num' + goodClass(r, chg)),
+            td(num(r.year_ago) === null ? 'n/a' : fmt(num(r.year_ago), r.unit, dec), 'num'), td(r.sa), td(r.source, 'wrap'));
+          click(tr, () => open('ind', r.id)); body.append(tr);
+        });
+      });
+      tb.replaceChildren(head([['Indicator'], ['Period'], ['Latest', 'num'], ['Prior', 'num'], ['Change', 'num'], ['Year ago', 'num'], ['Adj.'], ['Source']]), body);
+      note.textContent = 'SA is seasonally adjusted, NSA is not, SAAR is seasonally adjusted at an annual rate. Select a row for its chart.';
+    } else if (state.table === 'stocks') {
+      const ix = index();
+      const pick = el('select', 'em-select'); pick.setAttribute('aria-label', 'Index'); M.indices.forEach((x) => { const o = el('option', '', x.set); o.value = x.id; o.selected = x.id === state.index; pick.append(o); });
+      pick.onchange = () => { state.index = pick.value; state.sector = 'all'; table(); };
+      const sec = el('select', 'em-select'); sec.setAttribute('aria-label', 'Sector'); const all = el('option', '', 'All sectors'); all.value = 'all'; sec.append(all);
+      ix.sectors.forEach((s) => { const o = el('option', '', M.sectors[s.s]); o.value = s.s; o.selected = String(s.s) === String(state.sector); sec.append(o); });
+      sec.onchange = () => { state.sector = sec.value; table(); };
+      const q = el('input', 'em-input'); q.type = 'search'; q.placeholder = 'Search company or ticker'; q.value = state.q; q.setAttribute('aria-label', 'Search');
+      const count = el('span', 'em-count');
+      const fill = () => {
+        const needle = state.q.trim().toLowerCase(), s = state.sort, none = (v) => v === null || v === undefined;
+        const rs = members(ix).filter((m) => (state.sector === 'all' || String(m.s) === String(state.sector)) && (!needle || m.t.toLowerCase().includes(needle) || m.n.toLowerCase().includes(needle)));
+        const key = (m) => (s === 'w' ? m.wt : s === 'sec' ? M.sectors[m.s] : m[s]);
+        rs.sort((a, b) => { const x = key(a), y = key(b); if (none(x) || none(y)) return none(x) - none(y); return state.dir * (typeof x === 'string' ? x.localeCompare(y) : x - y); });
+        body.replaceChildren(...rs.map((m) => {
+          const tr = el('tr'), t = td(''); t.append(el('b', '', m.t));
+          tr.append(t, td(m.n), td(M.sectors[m.s]), td(m.sub), td(d3.format(',.2f')(m.wt) + '%', 'num'), td('$' + d3.format(',.2f')(m.p), 'num'), ...PERIODS.map(([k]) => td(pct(m[k], 1), 'num ' + dir(m[k]))));
+          click(tr, () => open('stock', m.t)); return tr;
+        }));
+        if (!rs.length) { const tr = el('tr'), c = el('td', 'em-empty', 'No company in the ' + ix.set + ' matches.'); c.colSpan = 12; tr.append(c); body.append(tr); }
+        count.textContent = rs.length + ' of ' + ix.members + ' companies';
+      };
+      q.oninput = () => { state.q = q.value; fill(); };
+      tools.append(pick, sec, q, count);
+      tb.replaceChildren(head([['Ticker', '', 't'], ['Company', '', 'n'], ['GICS sector', '', 'sec'], ['Sub-industry', '', 'sub'], ['Weight', 'num', 'w'], ['Price', 'num', 'p'], ...PERIODS.map(([k, l]) => [l, 'num', k])]), body);
+      fill();
+      note.textContent = `Closing prices for ${fDay(utc(M.asof))}. Weights as of ${M.holdings_asof}. Select a column heading to sort, or a row for the company.`;
+    } else if (state.table === 'sectors') {
+      M.indices.forEach((ix) => {
+        const g = el('tr', 'em-group'), gd = el('td', '', ix.set); gd.colSpan = 9; g.append(gd); body.append(g);
+        ix.sectors.forEach((s) => { const tr = el('tr'); tr.append(td(M.sectors[s.s]), td(String(s.n), 'num'), td(d3.format('.2f')(s.w) + '%', 'num'), ...PERIODS.map(([k]) => td(pct(s[k], 1), 'num ' + dir(s[k])))); click(tr, () => open('sector', ix.id + ':' + s.s)); body.append(tr); });
+      });
+      tb.replaceChildren(head([['GICS sector'], ['Companies', 'num'], ['Weight', 'num'], ...PERIODS.map(([, l]) => [l, 'num'])]), body);
+      note.textContent = 'Sector returns use today\'s members, so periods of a year run higher than the index. Select a row for its companies.';
+    } else {
+      M.spreads.forEach((s) => { const tr = el('tr'), t = td(''); t.append(el('b', '', s.name)); tr.append(t, td(s.code), td(d3.format(',')(s.latest), 'num'), ...[s.d1, s.m1, s.y1].map((v) => td(fmt(v, '', 0, true), 'num ' + (v > 0 ? 'down' : v < 0 ? 'up' : ''))), td(d3.format(',')(s.lo), 'num'), td(d3.format(',')(s.med), 'num'), td(d3.format(',')(s.hi), 'num')); body.append(tr); });
+      tb.replaceChildren(head([['ICE BofA index'], ['FRED series'], ['Spread, bp', 'num'], ['1 day', 'num'], ['1 month', 'num'], ['1 year', 'num'], ['3-yr low', 'num'], ['Median', 'num'], ['3-yr high', 'num']]), body);
+      note.textContent = `Option-adjusted spreads in basis points, ${fDay(utc(M.spreads[0].asof))}. Range since ${fDay(utc(M.spreads[0].from))}.`;
+    }
+  }
+
+  /* ---------- detail panel ---------- */
+
+  function open(type, id, push) {
+    if (!push) state.stack = [];
+    state.stack.push([type, id]);
+    drawer();
+    const d = $('em-drawer'); if (!d.open) d.showModal();
+    $('em-dbody').scrollTop = 0;
+  }
+  function acc(parent, title, text, isOpen) {
+    if (!text) return;
+    const d = el('details', 'em-acc'); d.open = !!isOpen; d.append(el('summary', '', title), el('p', '', text)); parent.append(d);
+  }
+  function stat(parent, label, text, cls) { const s = el('div'); s.append(el('div', 'em-stat-l', label), el('div', 'em-stat-v ' + (cls || ''), text)); parent.append(s); }
+  function chartFor(parent, r, color, peers, h) {
+    const t = el('div', 'em-chart-title'), key = el('i'); key.style.background = color;
+    const u = { '%': 'percent', pts: 'percentage points', K: 'thousands', M: 'millions', '$T': 'trillions of dollars', idx: 'index', x: 'ratio' }[r.unit] || '';
+    t.append(key, r.name, el('span', '', u + (r.freq === 'Q' ? ', quarterly' : r.freq === 'M' ? ', monthly' : ', monthly average')));
+    const box = el('div', 'em-chart'); box.style.minHeight = h + 'px'; parent.append(t, box);
+    later(() => lineChart(box, clip(series(r.id), state.range), { name: r.name, unit: r.unit, dec: +r.dec, color, h, band: true, zero: r.unit === 'pts' || /yoy|chg|gdp|productivity/.test(r.id), quarterly: r.freq === 'Q', peers,
       ref: r.id === 'sahm' ? 0.5 : r.id === 'core_pce_yoy' ? 2 : undefined, refLabel: r.id === 'sahm' ? 'Threshold 0.50' : '2% target' }));
     return box;
   }
-  function unitWords(r) {
-    const u = { '%': 'percent', pts: 'percentage points', K: 'thousands', M: 'millions', '$T': 'trillions of dollars', idx: 'index', x: 'ratio' }[r.unit] || '';
-    return u + (r.freq === 'Q' ? ', quarterly' : r.freq === 'M' ? ', monthly' : ', monthly average');
-  }
-  function openIndicator(id) {
-    const r = byId().get(id); if (!r) return;
-    state.ind = id; if (state.theme !== 'all' && state.theme !== r.theme) setTheme(r.theme);
-    dash.draw('tiles'); dash.draw('detail');
-    const t = document.getElementById('em-ind-detail'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  function openLink(id) {
-    state.link = id; dash.draw('linklist'); dash.draw('linkdetail');
-    const t = document.getElementById('em-links'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  function setTheme(t) {
-    state.theme = t;
-    document.querySelectorAll('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeBtn === t)));
-  }
+  function rangeRow(parent, label) { const row = el('div', 'em-drow'), s = el('div', 'em-seg'); s.dataset.range = ''; row.append(el('div', 'em-dlabel', label), s); row.firstChild.style.margin = '0'; parent.append(row); }
 
-  dash.draw('retrieved', (box) => {
-    const r = rows('indicators')[0];
-    if (!r || !r.retrieved) return dash0(box);
-    box.textContent = d3.timeFormat('%B %-d, %Y')(new Date(r.retrieved));
-  });
+  function drawer() {
+    const [type, id] = state.stack[state.stack.length - 1], head = $('em-dheadtext'), body = $('em-dbody');
+    head.replaceChildren(); body.replaceChildren();
+    if (state.stack.length > 1) { const back = btn('em-chip', '← Back', () => { state.stack.pop(); drawer(); }); back.style.marginBottom = '8px'; head.append(back); }
+    const title = (kicker, name) => { const k = el('p', 'em-kicker', kicker), h = el('h2', 'em-h3', name); h.id = 'em-dtitle'; head.append(k, h); return k; };
+    const ind = byId();
 
-  dash.draw('summary', (box) => {
-    if (failed(box, ['summary'])) return;
-    box.replaceChildren(...rows('summary').map((r, i) => {
-      const c = el('div', 'em-sum'); c.append(el('h3', '', r.theme));
-      const p = mark(el('p', '', r.text), 'summary', 'text'); p.dataset.row = String(i); c.append(p); return c;
-    }));
-  });
-
-  dash.draw('linklist', (box) => {
-    if (failed(box, ['links'])) return;
-    box.replaceChildren(...rows('links').map((l) => {
-      const b = el('button', 'em-chip', l.title); b.type = 'button'; b.setAttribute('aria-pressed', String(l.id === state.link));
-      b.onclick = () => { state.link = l.id; dash.draw('linklist'); dash.draw('linkdetail'); };
-      return b;
-    }));
-  });
-
-  dash.draw('linkdetail', (box) => {
-    if (failed(box, ['links', 'series', 'indicators'])) return;
-    const l = rows('links').find((x) => x.id === state.link) || rows('links')[0];
-    if (!l) return box.replaceChildren();
-    const ind = byId(), a = ind.get(l.a), b = ind.get(l.b);
-    const left = el('div'), right = el('div'), grid = el('div', 'em-two');
-    const names = list(l.themes).map((t) => (THEMES.find((x) => x[0] === t) || [0, t])[1]).join(' · ');
-    const head = el('div');
-    head.append(el('p', 'em-kicker', names), el('h3', 'em-h3', l.title), el('p', 'em-q', l.question));
-    const where = 'id=' + l.id;
-    if (l.state) head.append(mark(el('p', 'em-votive', l.state), 'links', 'state', where));
-    const boxes = []; const peers = () => boxes;
-    if (a) boxes.push(chartBlock(left, a, C.a, peers));
-    if (b) boxes.push(chartBlock(left, b, C.b, peers));
-    const r = num(l.corr);
-    const note = el('p', 'em-note');
-    if (r !== null) {
-      const lead = +l.lead;
-      note.append('Correlation since 2018' + (lead ? `, with the second series read ${lead} months later` : '') + ': ',
-        mark(el('b', '', d3.format('+.2f')(r).replace('-', '−')), 'links', 'corr', where), ` across ${l.corr_n} months. Shaded band: 2020 recession.`);
-    } else note.textContent = 'Too few overlapping observations to compute a correlation.';
-    left.append(note);
-    right.append(mark(el('p', 'em-reading', l.reading), 'links', 'reading', where),
-      el('p', 'em-label', 'Mechanism'), el('p', 'em-text', l.mechanism),
-      el('p', 'em-label first', 'First-order effect'), el('p', 'em-text', l.first),
-      el('p', 'em-label second', 'Second-order effect'), el('p', 'em-text', l.second),
-      el('p', 'em-label', 'What would mislead you'), el('p', 'em-text', l.caveat));
-    const rel = el('div', 'em-chips'); rel.style.marginTop = '18px';
-    [l.a, l.b, ...list(l.extra)].forEach((id) => { const x = ind.get(id); if (!x) return; const c = el('button', 'em-chip em-chip-sm', x.name); c.type = 'button'; c.onclick = () => openIndicator(id); rel.append(c); });
-    right.append(el('p', 'em-label', 'Open an indicator'), rel);
-    grid.append(left, right);
-    box.replaceChildren(head, grid);
-  });
-
-  dash.draw('tiles', (box) => {
-    if (failed(box, ['indicators', 'series'])) return;
-    const all = rows('indicators').filter((r) => state.theme === 'all' || r.theme === state.theme);
-    box.replaceChildren(...all.map((r) => {
-      const t = el('button', 'em-tile'); t.type = 'button'; t.setAttribute('aria-pressed', String(r.id === state.ind));
-      const where = 'id=' + r.id, chg = num(r.change);
-      t.append(el('span', 'em-tile-name', r.name), mark(el('span', 'em-tile-val', fmt(num(r.latest), r.unit, +r.dec)), 'indicators', 'latest', where),
-        el('span', 'em-tile-meta', r.period + ' · ' + r.sa));
-      const d = el('span', 'em-delta' + deltaClass(r, chg));
-      d.append(arrow(chg), mark(el('span', '', fmt(chg, chgUnit(r.unit), +r.dec, true)), 'indicators', 'change', where), ' ' + r.prior_label);
-      t.append(d);
-      const sp = mark(el('span', 'em-chart em-spark'), 'series'); t.append(sp);
-      t.onclick = () => { state.ind = r.id; dash.draw('tiles'); dash.draw('detail'); const dt = document.getElementById('em-ind-detail'); if (dt) dt.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
-      queueMicrotask(() => lineChart(sp, clip(series(r.id), state.range), { spark: true, h: 34, color: C.a, unit: r.unit, dec: +r.dec, name: r.name, empty: ' ' }));
-      return t;
-    }));
-  });
-
-  dash.draw('detail', (box) => {
-    if (failed(box, ['indicators', 'series'])) return;
-    const ind = byId(); let r = ind.get(state.ind);
-    if (!r || (state.theme !== 'all' && r.theme !== state.theme)) r = rows('indicators').find((x) => state.theme === 'all' || x.theme === state.theme);
-    if (!r) return box.replaceChildren();
-    const where = 'id=' + r.id, dec = +r.dec, left = el('div'), right = el('div'), grid = el('div', 'em-two');
-    const theme = (THEMES.find((x) => x[0] === r.theme) || [0, ''])[1];
-    const k = el('p', 'em-kicker', theme + ' · ' + r.period + ' '); k.append(el('span', 'em-badge', r.sa));
-    left.append(k, el('h3', 'em-h3', r.name), mark(el('div', 'em-big', fmt(num(r.latest), r.unit, dec)), 'indicators', 'latest', where));
-    const chg = num(r.change), d = el('p', 'em-delta' + deltaClass(r, chg));
-    d.append(arrow(chg), mark(el('span', '', fmt(chg, chgUnit(r.unit), dec, true)), 'indicators', 'change', where), ' ' + r.prior_label);
-    left.append(d);
-    const stats = el('div', 'em-stats');
-    const stat = (label, node) => { const s = el('div'); s.append(el('div', 'em-stat-l', label), node); stats.append(s); };
-    stat('Prior', mark(el('div', 'em-stat-v', fmt(num(r.prior), r.unit, dec)), 'indicators', 'prior', where));
-    stat('Year ago', mark(el('div', 'em-stat-v', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec)), 'indicators', 'year_ago', where));
-    if (num(r.percentile) !== null) {
-      const v = el('div', 'em-stat-v'); v.append(mark(el('span', '', String(r.percentile)), 'indicators', 'percentile', where), ' of 100');
-      stat('10-year percentile', v);
-    } else stat('History', el('div', 'em-stat-v', 'Two months read'));
-    left.append(stats);
-    if (String(r.has_history) !== 'false') chartBlock(left, r, C.a, null, 230);
-    if (r.id === 'ai_adoption') {
-      const rp = dash.data('ramp');
-      if (rp.status === 'ok') {
-        const wrap = mark(el('div', 'em-bars'), 'ramp'); let g = '';
-        rp.data.filter((x) => x.group !== 'All').forEach((x) => {
-          if (x.group !== g) { g = x.group; wrap.append(el('div', 'em-bar-group', 'By ' + g.toLowerCase() + ', September 2026')); }
-          const row = el('div', 'em-bar'), tr = el('div', 'em-bar-track'), f = el('div', 'em-bar-fill'); f.style.width = Math.min(100, +x.sep_2026) + '%'; tr.append(f);
-          row.append(el('span', '', x.segment), tr, mark(el('span', 'em-bar-v', (+x.sep_2026).toFixed(1) + '%'), 'ramp', 'sep_2026', 'segment=' + encodeURIComponent(x.segment)));
-          wrap.append(row);
+    if (type === 'ind') {
+      const r = ind.get(id), dec = +r.dec;
+      title(themeName(r.theme) + ' · ' + r.period + ' ', r.name).append(el('span', 'em-badge', r.sa));
+      const big = el('div', 'em-big', fmt(num(r.latest), r.unit, dec)); body.append(big, delta(r));
+      const stats = el('div', 'em-stats');
+      stat(stats, 'Prior', fmt(num(r.prior), r.unit, dec));
+      stat(stats, 'Year ago', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec));
+      stat(stats, 'Ten-year rank', num(r.percentile) === null ? 'n/a' : r.percentile + ' of 100');
+      body.append(stats);
+      if (String(r.has_history) !== 'false') { rangeRow(body, 'History'); chartFor(body, r, C.a, null, 220); }
+      if (r.id === 'ai_adoption') {
+        const wrap = el('div', 'em-bars'); let g = '';
+        rows('ramp').filter((x) => x.group !== 'All').forEach((x) => {
+          if (x.group !== g) { g = x.group; wrap.append(el('div', 'em-dlabel', 'By ' + g.toLowerCase() + ', September 2026')); }
+          const row = el('div', 'em-brow'), tr = el('div', 'em-btrack'), f = el('div', 'em-bfill'); f.style.width = Math.min(100, +x.sep_2026) + '%'; tr.append(f);
+          row.append(el('span', '', x.segment), tr, el('span', '', (+x.sep_2026).toFixed(1) + '%')); wrap.append(row);
         });
-        left.append(wrap);
+        body.append(wrap);
       }
+      body.append(el('div', 'em-dlabel', 'What it measures'), el('p', 'em-lede', r.what));
+      acc(body, 'First-order effect', r.first); acc(body, 'Second-order effect', r.second); acc(body, 'Seasonal adjustment', r.sa_note); acc(body, 'How it is calculated', r.derived ? r.derived + '.' : '');
+      const src = el('p', 'em-src'), a = el('a', '', r.source); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener';
+      src.append('Source: ', a, '. Series ' + r.series_code + '.' + (r.via ? ' ' + r.via + '.' : '')); body.append(src);
+      const ls = list(r.links).map((x) => rows('links').find((l) => l.id === x)).filter(Boolean);
+      if (ls.length) { const c = el('div', 'em-chips'); ls.forEach((l) => c.append(btn('em-chip', l.title, () => open('link', l.id, true)))); body.append(el('div', 'em-dlabel', 'Where it connects'), c); }
     }
-    right.append(el('p', 'em-label', 'What it measures'), el('p', 'em-text', r.what),
-      el('p', 'em-label first', 'First-order effect'), el('p', 'em-text', r.first),
-      el('p', 'em-label second', 'Second-order effect'), el('p', 'em-text', r.second),
-      el('p', 'em-label', 'Seasonal adjustment'), el('p', 'em-text', r.sa_note));
-    if (r.derived) right.append(el('p', 'em-label', 'How it is calculated'), el('p', 'em-text', r.derived + '.'));
-    right.append(el('p', 'em-label', 'Source'));
-    const src = el('p', 'em-src'), a = el('a', '', r.source); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener';
-    src.append(a, '. Series ' + r.series_code + '.' + (r.via ? ' ' + r.via + '.' : ''));
-    right.append(src);
-    const ls = list(r.links).map((id) => rows('links').find((x) => x.id === id)).filter(Boolean);
-    if (ls.length) {
-      const rel = el('div', 'em-chips'); rel.style.marginTop = '6px';
-      ls.forEach((l) => { const c = el('button', 'em-chip em-chip-sm', l.title); c.type = 'button'; c.onclick = () => openLink(l.id); rel.append(c); });
-      right.append(el('p', 'em-label', 'Where it connects'), rel);
-    }
-    grid.append(left, right);
-    box.replaceChildren(grid);
-  });
 
-  dash.draw('table', (body) => {
-    if (!ok('indicators')) return body.replaceChildren();
-    const out = [];
-    THEMES.forEach(([id, name]) => {
-      const rs = rows('indicators').filter((r) => r.theme === id); if (!rs.length) return;
-      const g = el('tr', 'em-group'), gd = el('td', '', name); gd.colSpan = 7; g.append(gd); out.push(g);
-      rs.forEach((r) => {
-        const tr = el('tr'); tr.dataset.key = r.id; tr.tabIndex = 0; const dec = +r.dec;
-        const td = (t, c) => el('td', c || '', t);
-        tr.append(td(r.name), td(r.period), td(fmt(num(r.latest), r.unit, dec), 'num'), td(fmt(num(r.prior), r.unit, dec), 'num'),
-          td(num(r.year_ago) === null ? 'n/a' : fmt(num(r.year_ago), r.unit, dec), 'num'), td(r.sa), td(r.source));
-        tr.onclick = () => openIndicator(r.id);
-        tr.onkeydown = (e) => { if (e.key === 'Enter') openIndicator(r.id); };
-        out.push(tr);
+    if (type === 'link') {
+      const l = rows('links').find((x) => x.id === id), a = ind.get(l.a), b = ind.get(l.b);
+      title(list(l.themes).map(themeName).join(' · '), l.title);
+      body.append(el('p', 'em-lede', l.question));
+      if (l.state) body.append(el('p', 'em-callout', l.state));
+      const stats = el('div', 'em-stats');
+      [a, b].forEach((r) => { if (r) stat(stats, r.name, fmt(num(r.latest), r.unit, +r.dec)); });
+      const corr = num(l.corr); stat(stats, 'Correlation', corr === null ? 'n/a' : minus(d3.format('+.2f')(corr)));
+      body.append(stats); rangeRow(body, 'History');
+      const boxes = [], peers = () => boxes;
+      if (a) boxes.push(chartFor(body, a, C.a, peers, 170));
+      if (b) boxes.push(chartFor(body, b, C.b, peers, 170));
+      if (corr !== null) body.append(el('p', 'em-note', `Correlation on monthly data since 2018${+l.lead ? `, with the second series read ${l.lead} months later` : ''}, across ${l.corr_n} months.`));
+      body.append(el('div', 'em-dlabel', 'Mechanism'), el('p', 'em-lede', l.mechanism));
+      acc(body, 'First-order effect', l.first); acc(body, 'Second-order effect', l.second); acc(body, 'What would mislead you', l.caveat);
+      const c = el('div', 'em-chips'); [l.a, l.b, ...list(l.extra)].forEach((x) => { const r = ind.get(x); if (r) c.append(btn('em-chip', r.name, () => open('ind', x, true))); });
+      body.append(el('div', 'em-dlabel', 'Indicators in this chain'), c);
+    }
+
+    if (type === 'stock') {
+      const s = M.stocks[id];
+      title(M.sectors[s.s] + ' · ' + s.sub, s.n + ' (' + id + ')');
+      const big = el('div', 'em-big', '$' + d3.format(',.2f')(s.p)), d = el('span', 'em-delta ' + dir(s.d1)); d.append(arrow(s.d1) + pct(s.d1) + ' ', el('small', '', 'on the day, ' + fDay(utc(M.asof))));
+      const stats = el('div', 'em-stats six'); PERIODS.forEach(([k, lab]) => stat(stats, lab, pct(s[k], 1), dir(s[k])));
+      body.append(big, d, stats, el('div', 'em-dlabel', 'Share price, past year'));
+      const box = el('div', 'em-chart'); box.style.minHeight = '200px'; body.append(box);
+      const end = utc(M.asof), pts = s.h.map((v, i) => ({ d: new Date(end - (s.h.length - 1 - i) * 7 * 864e5), v }));
+      later(() => lineChart(box, pts, { h: 200, color: C.a, unit: '', dec: 2, name: s.n + ' weekly close', gaps: false, tfmt: fDay, tickDec: 0 }));
+      const r = el('div', 'em-range'), e = el('div', 'em-track-ends'); r.style.marginTop = '0';
+      e.append(el('span', '', 'Low $' + d3.format(',.2f')(s.lo)), el('b', '', pct((s.p / s.hi - 1) * 100, 1) + ' from high'), el('span', '', 'High $' + d3.format(',.2f')(s.hi)));
+      r.append(track((s.p - s.lo) / ((s.hi - s.lo) || 1)), e); body.append(el('div', 'em-dlabel', '52-week range'), r);
+      const wrap = el('div', 'em-bars'), mx = Math.max(...Object.values(s.w));
+      M.indices.forEach((ix) => { const w = s.w[ix.key]; if (w === undefined) return; const row = el('div', 'em-brow'), tr = el('div', 'em-btrack'), f = el('div', 'em-bfill'); f.style.width = (w / mx) * 100 + '%'; tr.append(f); row.append(el('span', '', ix.set), tr, el('span', '', d3.format('.2f')(w) + '%')); wrap.append(row); });
+      body.append(el('div', 'em-dlabel', 'Weight in each index'), wrap);
+      const ix = index(), back = btn('em-chip', 'All ' + M.sectors[s.s] + ' companies in the ' + (s.w[ix.key] !== undefined ? ix : M.indices.find((x) => s.w[x.key] !== undefined)).set, () => open('sector', (s.w[ix.key] !== undefined ? ix : M.indices.find((x) => s.w[x.key] !== undefined)).id + ':' + s.s, true));
+      back.style.marginTop = '18px'; body.append(back);
+    }
+
+    if (type === 'sector') {
+      const [iid, sid] = id.split(':'), ix = index(iid), s = ix.sectors.find((x) => String(x.s) === sid), k = state.period;
+      title(ix.set + ' · GICS sector', M.sectors[s.s]);
+      const big = el('div', 'em-big', pct(s[k])); big.style.color = s[k] > 0 ? C.up : s[k] < 0 ? C.down : ''; big.append(el('small', '', periodLabel()[1]));
+      const top = el('div', 'em-stats'); stat(top, 'Weight in index', d3.format('.1f')(s.w) + '%'); stat(top, 'Companies', String(s.n)); stat(top, 'Index, same period', pct(ix[k]));
+      const stats = el('div', 'em-stats six'); stats.style.marginTop = '-15px'; PERIODS.forEach(([p, lab]) => stat(stats, lab, pct(s[p], 1), dir(s[p])));
+      body.append(big, top, stats, el('div', 'em-dlabel', 'Companies, ranked by ' + periodLabel()[1] + ' return'));
+      const ms = members(ix).filter((m) => m.s === s.s).sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9)), mx = d3.max(ms, (m) => Math.abs(m[k] || 0)) || 1, lst = el('div', 'em-list');
+      ms.forEach((m) => {
+        const b = btn('em-li', null, () => open('stock', m.t, true)), name = el('span', 'em-li-name'), hb = el('span', 'em-hbar div'), f = el('i', dir(m[k]));
+        name.append(el('b', '', m.t), el('small', '', m.n)); const w = (Math.abs(m[k] || 0) / mx) * 50; f.style.width = w + '%'; f.style.left = (m[k] >= 0 ? 50 : 50 - w) + '%'; hb.append(f);
+        b.append(name, hb, el('span', 'em-li-v ' + dir(m[k]), pct(m[k], 1))); lst.append(b);
       });
-    });
-    body.replaceChildren(...out);
-  });
+      body.append(lst);
+    }
+    ranges();
+  }
 
-  document.querySelectorAll('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => { setTheme(b.dataset.themeBtn); dash.draw('tiles'); dash.draw('detail'); }));
-  document.querySelectorAll('[data-range-btn]').forEach((b) => b.addEventListener('click', () => {
-    state.range = +b.dataset.rangeBtn;
-    document.querySelectorAll('[data-range-btn]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    dash.draw('tiles'); dash.draw('detail'); dash.draw('linkdetail');
-  }));
-  document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.goto); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+  /* ---------- shell ---------- */
+
+  const PANELS = { overview, markets, indicators, connections, data: table, sources: () => {} };
+  function render() {
+    document.querySelectorAll('.em-tab').forEach((b) => { const on = b.dataset.tab === state.tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    TABS.forEach((t) => { $('p-' + t).hidden = t !== state.tab; });
+    PANELS[state.tab]();
+    if ($('em-drawer').open) drawer();
+  }
+  function go(tab, anchor) {
+    state.tab = tab; if (location.hash !== '#' + tab) history.pushState(null, '', '#' + tab);
+    render();
+    const target = anchor && $(anchor);
+    if (target) later(() => target.scrollIntoView({ block: 'center' })); else window.scrollTo(0, 0);
+  }
+  function fromHash() { const h = location.hash.slice(1); state.tab = TABS.includes(h) ? h : 'overview'; }
+
+  document.querySelectorAll('.em-tab').forEach((b) => b.addEventListener('click', () => go(b.dataset.tab)));
+  document.querySelector('[role=tablist]').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const i = (TABS.indexOf(state.tab) + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+    go(TABS[i]); document.querySelector(`[data-tab="${TABS[i]}"]`).focus();
+  });
+  window.addEventListener('hashchange', () => { fromHash(); render(); });
+  const dlg = $('em-drawer');
+  $('em-dclose').onclick = () => dlg.close();
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+  const first = rows('indicators')[0];
+  $('em-stamp').textContent = [first && first.retrieved ? 'Economic data retrieved ' + d3.timeFormat('%b %-d, %Y')(new Date(first.retrieved)) : '', M ? 'Markets at the close of ' + fDay(utc(M.asof)) : ''].filter(Boolean).join(' · ');
+  fromHash();
+  let lastW;
+  dash.draw('app', () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; render(); });
 })();
 </script>
 
