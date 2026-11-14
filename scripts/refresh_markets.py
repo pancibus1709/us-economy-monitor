@@ -7,6 +7,7 @@ Sources
   Index levels and share prices   Yahoo Finance chart endpoint (daily closes)
   Index membership and weights    Daily holdings of SPY and DIA (State Street) and QQQ (Invesco)
   GICS sector and sub-industry    Wikipedia's S&P 500 constituent table; GICS_EXTRA below for the rest
+  VIX and MOVE                    Yahoo Finance chart endpoint (daily closes)
   Credit spreads                  ICE BofA option-adjusted spreads, via FRED
 """
 import datetime as dt
@@ -32,6 +33,10 @@ INDICES = [
     ("dow", "^DJI", "Dow Jones Industrial Average", "dia", "Dow 30"),
 ]
 EXTRA_INDEX = [("ndx", "^NDX", "Nasdaq-100")]
+VOLATILITY = [
+    ("vix", "^VIX", "VIX", "Expected S&P 500 volatility over the next 30 days, from option prices"),
+    ("move", "^MOVE", "MOVE Index", "Expected Treasury yield volatility over the next 30 days, from option prices"),
+]
 
 SECTORS = ["Information Technology", "Communication Services", "Consumer Discretionary", "Consumer Staples",
            "Health Care", "Financials", "Industrials", "Energy", "Materials", "Utilities", "Real Estate"]
@@ -287,6 +292,18 @@ def main():
     ndx = idx_pts["ndx"]
     extra = {"ndx": {"name": "Nasdaq-100", "level": round(ndx[-1][1], 2), **returns(ndx, last_day)}}
 
+    print("volatility", flush=True)
+    vol = []
+    for i, sym, name, what in VOLATILITY:
+        pts = yahoo(sym, "10y")
+        day, last = pts[-1]
+        ago = lambda days: on_or_before(pts, day - dt.timedelta(days=days))
+        vol.append({
+            "id": i, "name": name, "symbol": sym, "what": what, "asof": day.isoformat(), "latest": round(last, 2),
+            "d1": round(last - pts[-2][1], 2), "m1": round(last - ago(30), 2), "y1": round(last - ago(365), 2),
+            "hist": [[d.isoformat(), round(c, 2)] for d, c in pts],  # daily, so spikes survive
+        })
+
     print("credit spreads", flush=True)
     spreads = []
     for i, code, name in SPREADS:
@@ -305,7 +322,7 @@ def main():
     data = {
         "asof": last_day.isoformat(), "holdings_asof": spy_asof,
         "built": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "sectors": SECTORS, "indices": indices, "extra": extra, "stocks": stocks, "spreads": spreads,
+        "sectors": SECTORS, "indices": indices, "extra": extra, "stocks": stocks, "vol": vol, "spreads": spreads,
     }
     with open(OUT, "w") as f:
         f.write("const MARKETS = " + json.dumps(data, separators=(",", ":")) + ";\n")

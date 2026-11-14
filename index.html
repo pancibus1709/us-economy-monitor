@@ -110,11 +110,16 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-rank { columns: 2 380px; column-gap: 40px; }
 .em-rank-g { break-inside: avoid; padding-bottom: 12px; }
 .em-rank-group { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; color: var(--cobalt); margin: 0 0 4px; }
-.em-rank-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(80px, 1fr) 64px; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 4px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.em-rank-row { display: grid; grid-template-columns: minmax(0, 1.15fr) 50px minmax(60px, 1fr) 50px 66px; grid-template-areas: "n lo t hi v"; gap: 8px; align-items: center; width: calc(100% + 12px); text-align: left; background: none; border: 0; padding: 5px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; font-variant-numeric: tabular-nums; }
 .em-rank-row:hover { background: var(--cobalt-wash); }
-.em-rank-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.em-rank-row span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.em-track { position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--line) 0, var(--line) calc(50% - 1px), var(--ink-3) calc(50% - 1px), var(--ink-3) calc(50% + 1px), var(--line) calc(50% + 1px)); }
+.em-rank-row .n { grid-area: n; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.em-rank-row .lo { grid-area: lo; text-align: right; } .em-rank-row .hi { grid-area: hi; }
+.em-rank-row .lo, .em-rank-row .hi { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.em-rank-row .em-track { grid-area: t; }
+.em-rank-row .v { grid-area: v; text-align: right; font-weight: 700; white-space: nowrap; }
+@media (max-width: 560px) { .em-rank-row { grid-template-columns: 52px minmax(0, 1fr) 52px; grid-template-areas: "n n v" "lo t hi"; row-gap: 3px; padding: 7px 6px; } .em-rank-row .v { width: max-content; justify-self: end; } }
+.em-track { position: relative; height: 6px; border-radius: 3px; background: var(--line); }
+.em-track.med::before { content: ""; position: absolute; left: var(--m); top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink-3); }
 .em-track i { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--cobalt); border: 2px solid var(--panel); transform: translate(-50%, -50%); }
 .em-track-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 4px; }
 
@@ -137,7 +142,6 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-idx-name { font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .em-idx-level { font-size: clamp(21px, 6vw, 30px); font-weight: 800; letter-spacing: -.025em; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .em-range { margin-top: 8px; }
-.em-range .em-track { background: var(--line); }
 .em-range .em-track-ends b { color: var(--ink-2); font-weight: 600; }
 
 /* Ranked bars: sectors, leaders, laggards */
@@ -150,7 +154,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-li-v.up { color: var(--up); } .em-li-v.down { color: var(--down); }
 .em-hbar { position: relative; height: 12px; }
 .em-hbar i { position: absolute; top: 0; height: 12px; min-width: 2px; }
-.em-hbar.div::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink-3); }
+/* zero line */ .em-hbar.div::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink-3); }
 .em-hbar .up { background: var(--up); border-radius: 0 3px 3px 0; } .em-hbar .down { background: var(--down); border-radius: 3px 0 0 3px; }
 .em-hbar.left .up, .em-hbar.left .down { left: 0; border-radius: 0 3px 3px 0; }
 
@@ -165,7 +169,6 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-ladder { display: grid; grid-template-columns: auto minmax(60px, 1fr) auto auto; gap: 9px 14px; align-items: center; font-size: 13px; font-variant-numeric: tabular-nums; }
 .em-ladder b { font-weight: 700; } .em-ladder .v { text-align: right; font-weight: 700; } .em-ladder .c { text-align: right; color: var(--ink-2); min-width: 44px; }
 .em-ladder .h { font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
-.em-ladder .em-track { background: var(--line); }
 
 /* Connection cards */
 .em-link { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-width: 0; transition: border-color .12s, box-shadow .12s, transform .12s; }
@@ -256,6 +259,26 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-news-btn { flex: 0 0 auto; width: 42px; background: none; border: 0; border-left: 1px solid rgba(255, 255, 255, .16); color: #fff !important; cursor: pointer; font-size: 11px; }
 .em-news-btn:hover { background: rgba(255, 255, 255, .12); }
 @media (prefers-reduced-motion: reduce) { .em-news-track { animation: none; } .em-news-view { overflow-x: auto; } }
+
+.em-g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.em-cap { font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
+.em-sechead .em-ctl { margin-left: auto; }
+/* Phone layout */
+@media (max-width: 700px) {
+  .em-g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .em-bar { position: static; }
+  .em-head .em-wrap { padding-block: 14px; } .em-flora { width: 34px; height: 34px; }
+  .em-tab { padding: 12px 11px 9px; font-size: 14px; }
+  .em-sec { padding-top: 24px; } .em-h2 { font-size: 21px; }
+  .em-sechead .em-ctl { margin-left: 0; }
+  .em-big { font-size: 34px; }
+  .em-news-item { padding: 9px 14px 9px 12px; } .em-news-tag { padding-left: 14px; padding-right: 10px; }
+  .em-dhead { padding: 14px 16px 10px; } .em-dbody { padding: 0 16px 24px; } .em-h3 { font-size: 20px; }
+  .em-track-ends { gap: 8px; } .em-track-ends span, .em-track-ends b { min-width: 0; }
+  .em-li { grid-template-columns: minmax(0, 1.3fr) minmax(40px, .8fr) 58px; }
+  .em-tablewrap { max-height: none; }
+}
+@media (max-width: 400px) { .em-stats.six { grid-template-columns: repeat(3, minmax(0, 1fr)); } .em-ladder { gap: 9px 8px; } }
 </style>
 
 <div class="em">
@@ -296,14 +319,17 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       <div class="em-wrap">
         <div class="em-sec">
           <div class="em-sechead"><div><h2 class="em-h2">Markets</h2><p class="em-sub" id="ov-mkt-sub"></p></div></div>
-          <div class="em-grid em-g5" id="ov-markets"></div>
+          <div class="em-grid em-g3" id="ov-indices"></div>
+          <div class="em-grid em-g4" id="ov-markets" style="margin-top:12px"></div>
         </div>
         <div class="em-sec">
-          <div class="em-sechead"><div><h2 class="em-h2">Economy</h2><p class="em-sub">Latest reading and ten-year trend. Select any line for its history and context.</p></div></div>
+          <div class="em-sechead"><div><h2 class="em-h2">Economy</h2><p class="em-sub">Latest reading and trend. Select any line for its history and context.</p></div>
+            <div class="em-ctl"><span class="em-seglabel">Period</span><div class="em-seg" data-range role="group" aria-label="Period"></div></div></div>
           <div class="em-grid em-gcards" id="ov-themes"></div>
         </div>
         <div class="em-sec">
-          <div class="em-sechead"><div><h2 class="em-h2">Ten-year rank</h2><p class="em-sub">Where the latest reading falls among the past ten years of the same series.</p></div></div>
+          <div class="em-sechead"><div><h2 class="em-h2">Historical range</h2><p class="em-sub" id="ov-rank-sub"></p></div>
+            <div class="em-ctl"><span class="em-seglabel">Period</span><div class="em-seg" data-range role="group" aria-label="Period"></div></div></div>
           <div class="em-card"><div class="em-rank" id="ov-rank"></div></div>
         </div>
       </div>
@@ -333,6 +359,11 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
             <div class="em-card"><h3 class="em-card-h">Laggards</h3><div class="em-list" id="mk-laggards"></div></div>
           </div>
           <p class="em-note" id="mk-set-note"></p>
+        </div>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Volatility</h2><p class="em-sub">How large a move option markets are pricing in for stocks (VIX) and Treasuries (MOVE). The dashed line and the range bar use the selected history.</p></div>
+            <div class="em-ctl"><span class="em-seglabel">History</span><div class="em-seg" id="mk-vol-range" role="group" aria-label="Volatility history"></div></div></div>
+          <div class="em-grid em-g2" id="mk-vol"></div>
         </div>
         <div class="em-sec">
           <div class="em-sechead"><div><h2 class="em-h2">Credit spreads</h2><p class="em-sub">Extra yield over Treasuries that corporate bonds pay, in basis points. Wider spreads mean lenders want more for the risk.</p></div></div>
@@ -383,6 +414,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
           <p>Index members and weights come from the daily holdings of the funds that track each index: SPY for the S&amp;P 500, QQQ for the Nasdaq-100 and DIA for the Dow. The Nasdaq Composite holds more than 3,000 stocks, so its company view uses the Nasdaq-100.</p>
           <p>Sectors follow the Global Industry Classification Standard (GICS) that S&amp;P and MSCI maintain. S&amp;P 500 members carry the sector and sub-industry listed in Wikipedia's constituent table. Fifteen Nasdaq-100 companies outside the S&amp;P 500 were classified by hand and are listed in <code>scripts/refresh_markets.py</code>.</p>
           <p>A sector's return is the weighted average of today's members, each weighted by its share of the index at the start of the period. Companies that left an index during the period are not counted, so sector returns over a year run higher than the index itself.</p>
+          <p>The VIX is Cboe's index of expected S&amp;P 500 volatility and the MOVE is ICE BofA's index of expected Treasury yield volatility. Both are daily closes from Yahoo Finance.</p>
           <p>Credit spreads are ICE BofA option-adjusted spreads, read from FRED. FRED carries three years of history for these series, so ranges and ranks cover three years.</p>
         </details>
         <details class="em-method" open>
@@ -401,7 +433,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         </details>
         <details class="em-method">
           <summary>How the readings are computed</summary>
-          <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages, and the headline shows the latest daily or weekly figure. The ten-year rank is the share of readings from the past ten years at or below the latest one.</p>
+          <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages, and the headline shows the latest daily or weekly figure. The rank is the share of readings in the selected period at or below the latest one, and the range runs from that period's low to its high.</p>
           <p>Correlations use monthly data since 2018. That window holds one pandemic and one inflation cycle, which dominate the result. A correlation shows how two series moved together. It does not show that one causes the other.</p>
           <p>The explanations of mechanism and effects describe standard economic relationships. They do not forecast.</p>
         </details>
@@ -431,7 +463,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const PERIODS = [['d1', '1D', 'day'], ['w1', '1W', 'week'], ['m1', '1M', 'month'], ['m3', '3M', 'three months'], ['ytd', 'YTD', 'year to date'], ['y1', '1Y', 'year']];
   const C = { a: '#1F4FA8', b: '#C27F0A', c: '#C9357A', ink: '#14161F', grid: '#E4E1D8', band: '#F1EEE4', dot: '#F0B429', up: '#1E7B4F', down: '#B5263A', mid: '#ECE9E1' };
   const IDX_COLOR = { sp500: C.a, nasdaq: C.b, dow: C.c };
-  const state = { tab: 'overview', theme: 'all', range: 10, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [] };
+  const state = { tab: 'overview', theme: 'all', range: 10, volRange: 3, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [] };
 
   const $ = (id) => document.getElementById(id);
   const utc = (s) => new Date(s + (s.length === 10 ? 'T00:00:00Z' : ''));
@@ -614,7 +646,16 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     box.replaceChildren(...opts.map(([v, label]) => { const b = btn('', label, () => fn(v)); b.setAttribute('aria-pressed', String(v === cur)); return b; }));
   }
   // A dot on a track: where a value sits between a low and a high.
-  function track(frac) { const t = el('div', 'em-track'), dot = el('i'); dot.style.left = Math.max(1, Math.min(99, frac * 100)) + '%'; t.append(dot); return t; }
+  function track(frac, med) { const t = el('div', 'em-track'), dot = el('i'); dot.style.left = Math.max(1, Math.min(99, frac * 100)) + '%'; if (med !== undefined) { t.classList.add('med'); t.style.setProperty('--m', Math.max(1, Math.min(99, med * 100)) + '%'); } t.append(dot); return t; }
+  // Low, median, high and rank of the latest reading within the last `years` of its own series.
+  function span(r, years) {
+    const latest = num(r.latest), vals = clip(series(r.id), years).map((p) => p.v);
+    if (latest === null || vals.length < 3) return null;
+    vals.push(latest); vals.sort(d3.ascending);
+    const lo = vals[0], hi = vals[vals.length - 1], med = d3.median(vals), w = hi - lo || 1;
+    return { lo, hi, med, frac: (latest - lo) / w, medFrac: (med - lo) / w, rank: Math.round((100 * vals.filter((v) => v <= latest).length) / vals.length) };
+  }
+  const yrs = (n) => (n === 1 ? 'one year' : ({ 3: 'three', 5: 'five', 10: 'ten' }[n] || n) + ' years');
   function delta(r, short) {
     const chg = num(r.change), d = el('span', 'em-delta' + goodClass(r, chg));
     d.append(arrow(chg) + fmt(chg, chgUnit(r.unit), +r.dec, true) + ' ', short ? '' : el('small', '', r.prior_label));
@@ -646,6 +687,15 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     sparkOf(sp, hist(ix).filter((p) => p.d >= year), IDX_COLOR[ix.id], ix.name, false);
     return t;
   }
+  function volTile(v, onClick) {
+    const t = btn('em-tile', null, onClick), year = periodStart('y1');
+    // Higher volatility is the adverse move, so it takes the "down" colour.
+    const d = el('span', 'em-delta ' + (v.d1 > 0 ? 'down' : v.d1 < 0 ? 'up' : '')); d.append(arrow(v.d1) + fmt(v.d1, '', 2, true) + ' ', el('small', '', '1D'));
+    const sp = el('span', 'em-chart em-spark');
+    t.append(el('span', 'em-idx-name', v.name), el('span', 'em-idx-level', d3.format(',.2f')(v.latest)), d, sp);
+    sparkOf(sp, v.hist.map(([dd, x]) => ({ d: utc(dd), v: x })).filter((p) => p.d >= year), C.a, v.name, false);
+    return t;
+  }
   function spreadTile(s, onClick) {
     const t = btn('em-tile', null, onClick);
     // A wider spread is the adverse move, so it takes the "down" colour.
@@ -663,7 +713,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       $('ov-mkt-sub').textContent = `Close of ${fDay(utc(M.asof))}, change on the day. Select a card for sectors and companies.`;
       const hy = M.spreads.find((s) => s.id === 'hy'), ig = M.spreads.find((s) => s.id === 'ig');
       const keep = state.period; state.period = 'd1';
-      $('ov-markets').replaceChildren(...M.indices.map((ix) => indexCard(ix, () => { state.index = ix.id; go('markets'); })),
+      $('ov-indices').replaceChildren(...M.indices.map((ix) => indexCard(ix, () => { state.index = ix.id; go('markets'); })));
+      $('ov-markets').replaceChildren(...(M.vol || []).map((v) => volTile(v, () => go('markets', 'mk-vol'))),
         spreadTile(hy, () => go('markets', 'mk-credit')), spreadTile(ig, () => go('markets', 'mk-credit')));
       state.period = keep;
     }
@@ -677,22 +728,24 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         name.append(el('small', '', r.period));
         val.append(el('b', '', fmt(num(r.latest), r.unit, +r.dec)), delta(r, true));
         row.append(name, sp, val); body.append(row);
-        sparkOf(sp, clip(series(id), 10), C.a, r.name);
+        sparkOf(sp, clip(series(id), state.range), C.a, r.name);
       });
       return card;
     }));
+    ranges();
+    $('ov-rank-sub').textContent = `Latest reading against its low, median and high over the past ${yrs(state.range)}.`;
     const groups = THEMES.map(([id, name]) => {
-      const rs = rows('indicators').filter((r) => r.theme === id && num(r.percentile) !== null); if (!rs.length) return null;
+      const rs = rows('indicators').map((r) => [r, span(r, state.range)]).filter(([r, s]) => r.theme === id && s); if (!rs.length) return null;
       const g = el('div', 'em-rank-g'); g.append(el('div', 'em-rank-group', name));
-      rs.forEach((r) => {
-        const b = btn('em-rank-row', null, () => open('ind', r.id));
-        b.title = `${r.name}: ${fmt(num(r.latest), r.unit, +r.dec)}, at or above ${r.percentile}% of readings since ${r.window_start}`;
-        b.append(el('span', '', r.name), track(r.percentile / 100), el('span', '', fmt(num(r.latest), r.unit, +r.dec)));
+      rs.forEach(([r, s]) => {
+        const b = btn('em-rank-row', null, () => open('ind', r.id)), f = (v) => fmt(v, r.unit === 'pts' ? '' : r.unit, +r.dec);
+        b.title = `${r.name}: ${fmt(num(r.latest), r.unit, +r.dec)}. Low ${f(s.lo)}, median ${f(s.med)}, high ${f(s.hi)}. At or above ${s.rank}% of readings.`;
+        b.append(el('span', 'n', r.name), el('span', 'lo', f(s.lo)), track(s.frac, s.medFrac), el('span', 'hi', f(s.hi)), el('span', 'v', fmt(num(r.latest), r.unit, +r.dec)));
         g.append(b);
       });
       return g;
     }).filter(Boolean);
-    const ends = el('div', 'em-track-ends'); ends.append(el('span', '', '← Lowest in ten years'), el('span', '', 'Centre mark: median'), el('span', '', 'Highest →'));
+    const ends = el('div', 'em-track-ends'); ends.append(el('span', '', 'Left: period low'), el('span', '', 'Tick: median · Dot: latest'), el('span', '', 'Right: period high'));
     $('ov-rank').replaceChildren(...groups);
     $('ov-rank').parentNode.querySelectorAll('.em-track-ends').forEach((e) => e.remove());
     $('ov-rank').after(ends);
@@ -744,6 +797,23 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     };
     rank($('mk-leaders'), ranked.slice(0, 10)); rank($('mk-laggards'), ranked.slice(-10).reverse());
 
+    seg($('mk-vol-range'), [[1, '1Y'], [3, '3Y'], [5, '5Y'], [10, '10Y']], state.volRange, (v) => { state.volRange = v; markets(); });
+    $('mk-vol').replaceChildren(...(M.vol || []).map((v, n) => {
+      const end = utc(v.asof), from = new Date(Date.UTC(end.getUTCFullYear() - state.volRange, end.getUTCMonth(), end.getUTCDate()));
+      const pts = v.hist.map(([d, x]) => ({ d: utc(d), v: x })).filter((p) => p.d >= from), vals = pts.map((p) => p.v).sort(d3.ascending);
+      const lo = vals[0], hi = vals[vals.length - 1], med = d3.median(vals), rank = Math.round((100 * vals.filter((x) => x <= v.latest).length) / vals.length);
+      const card = el('div', 'em-card'), h = el('h3', 'em-card-h', v.name), big = el('div', 'em-big', d3.format(',.2f')(v.latest)), stats = el('div', 'em-stats'), box = el('div', 'em-chart');
+      h.append(el('span', '', fDay(end)));
+      [['1 day', v.d1], ['1 month', v.m1], ['1 year', v.y1]].forEach(([l, x]) => stat(stats, l, fmt(x, '', 2, true), x > 0 ? 'down' : x < 0 ? 'up' : ''));
+      const r = el('div', 'em-range'), e = el('div', 'em-track-ends');
+      e.append(el('span', '', 'Low ' + d3.format('.1f')(lo)), el('b', '', `Median ${d3.format('.1f')(med)} · above ${rank}% of days`), el('span', '', 'High ' + d3.format('.1f')(hi)));
+      r.append(track((v.latest - lo) / (hi - lo || 1), (med - lo) / (hi - lo || 1)), e);
+      box.style.minHeight = '220px';
+      card.append(h, big, el('p', 'em-cap', v.what + '.'), stats, box, r);
+      later(() => lineChart(box, pts, { h: 220, color: n ? C.b : C.a, unit: '', dec: 2, tickDec: 0, name: v.name, tfmt: fDay, ref: med, refLabel: '', gaps: false }));
+      return card;
+    }));
+
     $('mk-credit').replaceChildren(...['hy', 'ig'].map((id) => {
       const s = M.spreads.find((x) => x.id === id), card = el('div', 'em-card'), big = el('div', 'em-big', d3.format(',')(s.latest)), stats = el('div', 'em-stats'), box = el('div', 'em-chart');
       big.append(el('small', '', 'basis points'));
@@ -778,7 +848,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     }));
   }
   function ranges() {
-    document.querySelectorAll('[data-range]').forEach((b) => seg(b, [[3, '3 years'], [5, '5 years'], [10, '10 years']], state.range, (v) => { state.range = v; if (state.tab === 'indicators') indicators(); if ($('em-drawer').open) drawer(); }));
+    document.querySelectorAll('[data-range]').forEach((b) => seg(b, [[1, '1Y'], [3, '3Y'], [5, '5Y'], [10, '10Y']], state.range, (v) => { state.range = v; if (state.tab === 'indicators') indicators(); if (state.tab === 'overview') overview(); if ($('em-drawer').open) drawer(); }));
   }
 
   function connections() {
@@ -899,7 +969,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const stats = el('div', 'em-stats');
       stat(stats, 'Prior', fmt(num(r.prior), r.unit, dec));
       stat(stats, 'Year ago', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec));
-      stat(stats, 'Ten-year rank', num(r.percentile) === null ? 'n/a' : r.percentile + ' of 100');
+      const sp = span(r, state.range); stat(stats, state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
       body.append(stats);
       if (String(r.has_history) !== 'false') { rangeRow(body, 'History'); chartFor(body, r, C.a, null, 220); }
       if (r.id === 'ai_adoption') {
