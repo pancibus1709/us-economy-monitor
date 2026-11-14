@@ -140,16 +140,6 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-range .em-track { background: var(--line); }
 .em-range .em-track-ends b { color: var(--ink-2); font-weight: 600; }
 
-/* Market map */
-.em-map { position: relative; width: 100%; height: 480px; border-radius: 6px; overflow: hidden; background: var(--panel); }
-.em-map-sec { position: absolute; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: none; border: 0; padding: 0 2px; text-align: left; line-height: 16px; height: 16px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
-.em-map-sec:hover { color: var(--cobalt); text-decoration: underline; }
-.em-cell { position: absolute; border: 0; padding: 0; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.em-cell:hover, .em-cell:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; z-index: 2; }
-.em-cell b { font-weight: 800; } .em-cell span { opacity: .92; }
-.em-scale { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.em-scale i { width: 150px; height: 8px; border-radius: 4px; }
-
 /* Ranked bars: sectors, leaders, laggards */
 .em-list { display: grid; }
 .em-li { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(50px, 1fr) 62px; gap: 10px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 6px 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
@@ -246,6 +236,26 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 @media (max-width: 980px) { .em-g3.wide1 { grid-template-columns: minmax(0, 1fr); } }
 .em-seg { flex-wrap: wrap; } .em-ctl { min-width: 0; max-width: 100%; }
 .em-empty { padding: 26px 12px; text-align: center; color: var(--ink-3); }
+.em-gap { font-size: 10.5px; fill: var(--ink-2); paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+
+/* Headline ticker */
+.em-news { display: flex; align-items: stretch; background: var(--ink); color: #fff; font-size: 13.5px; }
+.em-news[hidden] { display: none; }
+.em-news-tag { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; padding: 6px 14px 6px max(20px, env(safe-area-inset-left, 0px)); background: var(--marigold); color: var(--ink); line-height: 1.2; }
+.em-news-tag b { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.em-news-tag span { font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+.em-news-view { flex: 1 1 auto; min-width: 0; overflow: hidden; display: flex; align-items: center; mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%); }
+.em-news-track { display: flex; width: max-content; animation: em-tick var(--em-tick, 120s) linear infinite; }
+.em-news:hover .em-news-track, .em-news:focus-within .em-news-track, .em-news.paused .em-news-track { animation-play-state: paused; }
+@keyframes em-tick { to { transform: translateX(-50%); } }
+.em-news-item { display: inline-flex; align-items: center; gap: 9px; padding: 9px 20px 9px 16px; color: #fff !important; text-decoration: none; white-space: nowrap; border-right: 1px solid rgba(255, 255, 255, .16); }
+.em-news-item:hover .em-news-t, .em-news-item:focus-visible .em-news-t { text-decoration: underline; text-underline-offset: 3px; }
+.em-news-c { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; color: var(--ink); }
+.em-news-t { font-weight: 600; }
+.em-news-s { color: rgba(255, 255, 255, .68); font-size: 12px; }
+.em-news-btn { flex: 0 0 auto; width: 42px; background: none; border: 0; border-left: 1px solid rgba(255, 255, 255, .16); color: #fff !important; cursor: pointer; font-size: 11px; }
+.em-news-btn:hover { background: rgba(255, 255, 255, .12); }
+@media (prefers-reduced-motion: reduce) { .em-news-track { animation: none; } .em-news-view { overflow-x: auto; } }
 </style>
 
 <div class="em">
@@ -263,6 +273,12 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     </div>
   </header>
   <div class="em-ribbon"></div>
+
+  <section class="em-news" id="em-news" aria-label="Latest headlines" hidden>
+    <div class="em-news-tag"><b>Latest</b><span id="em-news-time"></span></div>
+    <div class="em-news-view" id="em-news-view"><div class="em-news-track" id="em-news-track"></div></div>
+    <button type="button" class="em-news-btn" id="em-news-pause" aria-pressed="false" aria-label="Pause headlines" title="Pause">❚❚</button>
+  </section>
 
   <nav class="em-tabs" aria-label="Sections">
     <div class="em-wrap" role="tablist">
@@ -310,9 +326,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
           </div>
         </div>
         <div class="em-sec">
-          <div class="em-sechead"><div><h2 class="em-h2" id="mk-set-title">Sectors and companies</h2><p class="em-sub" id="mk-set-sub"></p></div><div class="em-scale" id="mk-scale"></div></div>
-          <div class="em-card"><div class="em-map" id="mk-map"></div></div>
-          <div class="em-grid em-g3 wide1" style="margin-top:12px">
+          <div class="em-sechead"><div><h2 class="em-h2" id="mk-set-title">Sectors and companies</h2><p class="em-sub" id="mk-set-sub"></p></div></div>
+          <div class="em-grid em-g3 wide1">
             <div class="em-card"><h3 class="em-card-h">Sectors <span>GICS</span></h3><div class="em-list" id="mk-sectors"></div></div>
             <div class="em-card"><h3 class="em-card-h">Leaders</h3><div class="em-list" id="mk-leaders"></div></div>
             <div class="em-card"><h3 class="em-card-h">Laggards</h3><div class="em-list" id="mk-laggards"></div></div>
@@ -370,6 +385,10 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
           <p>A sector's return is the weighted average of today's members, each weighted by its share of the index at the start of the period. Companies that left an index during the period are not counted, so sector returns over a year run higher than the index itself.</p>
           <p>Credit spreads are ICE BofA option-adjusted spreads, read from FRED. FRED carries three years of history for these series, so ranges and ranks cover three years.</p>
         </details>
+        <details class="em-method" open>
+          <summary>Headlines</summary>
+          <p>The ticker shows headlines from the public feeds of Bloomberg, The Wall Street Journal and the Financial Times, grouped as markets, economy, politics, technology and AI. Each links to the publisher's article. The time beside "Latest" is when the list was last refreshed.</p>
+        </details>
         <details class="em-method">
           <summary>Seasonal adjustment</summary>
           <p>Many series move with the calendar. Seasonal adjustment estimates that pattern and removes it so one month can be compared with the next. Agencies revise the adjustment every year, which is one reason past months change.</p>
@@ -403,13 +422,13 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 </div>
 
 <script src="markets-data.js"></script>
+<script src="news-data.js"></script>
 <script>
 (() => {
   const M = typeof MARKETS !== 'undefined' ? MARKETS : null;
   const TABS = ['overview', 'markets', 'indicators', 'connections', 'data', 'sources'];
   const THEMES = [['growth', 'Growth'], ['labor', 'Labor'], ['prices', 'Prices'], ['consumer', 'Consumer'], ['housing', 'Housing'], ['rates', 'Money and rates'], ['fiscal', 'Public finances'], ['ai', 'AI in business']];
   const PERIODS = [['d1', '1D', 'day'], ['w1', '1W', 'week'], ['m1', '1M', 'month'], ['m3', '3M', 'three months'], ['ytd', 'YTD', 'year to date'], ['y1', '1Y', 'year']];
-  const CLAMP = { d1: 3, w1: 6, m1: 12, m3: 20, ytd: 40, y1: 50 };
   const C = { a: '#1F4FA8', b: '#C27F0A', c: '#C9357A', ink: '#14161F', grid: '#E4E1D8', band: '#F1EEE4', dot: '#F0B429', up: '#1E7B4F', down: '#B5263A', mid: '#ECE9E1' };
   const IDX_COLOR = { sp500: C.a, nasdaq: C.b, dow: C.c };
   const state = { tab: 'overview', theme: 'all', range: 10, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [] };
@@ -504,11 +523,18 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       }
     }
     const line = d3.line().x((p) => x(p.d)).y((p) => y(p.v));
-    const segs = o.gaps === false ? [pts] : segments(pts);
+    const segs = o.gaps === false || spark ? [pts] : segments(pts);
     if (!spark) {
       const base = y(Math.max(lo, Math.min(hi, 0)));
       const area = d3.area().x((p) => x(p.d)).y0(lo < 0 && hi > 0 ? base : H - m.b).y1((p) => y(p.v));
-      svg.append('g').selectAll('path').data(segs).join('path').attr('d', area).attr('fill', o.color).attr('opacity', 0.08);
+      svg.append('path').attr('d', area(pts)).attr('fill', o.color).attr('opacity', 0.08);
+      // Months an agency did not publish: bridge with a dashed line and say so.
+      for (let i = 1; i < segs.length; i++) {
+        const a = segs[i - 1][segs[i - 1].length - 1], b = segs[i][0], gx = (x(a.d) + x(b.d)) / 2;
+        svg.append('line').attr('x1', x(a.d)).attr('y1', y(a.v)).attr('x2', x(b.d)).attr('y2', y(b.v)).attr('stroke', o.color).attr('stroke-width', 1.5).attr('stroke-dasharray', '3 3').attr('opacity', 0.7);
+        const above = Math.min(y(a.v), y(b.v)) - m.t > 30;
+        svg.append('text').attr('class', 'em-tick em-gap').attr('x', Math.min(Math.max(gx, m.l + 34), W - m.r - 34)).attr('y', above ? Math.min(y(a.v), y(b.v)) - 12 : Math.max(y(a.v), y(b.v)) + 20).attr('text-anchor', 'middle').text('Not collected');
+      }
     }
     svg.append('g').selectAll('path').data(segs).join('path').attr('d', line).attr('fill', 'none').attr('stroke', o.color).attr('stroke-width', spark ? 1.5 : 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
     const last = pts[pts.length - 1];
@@ -609,7 +635,6 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     d.setUTCDate(d.getUTCDate() - ({ m3: 91, y1: 365 }[k] || 30));
     return d;
   }
-  const heat = (k) => d3.scaleLinear().domain([-CLAMP[k], 0, CLAMP[k]]).range([C.down, C.mid, C.up]).interpolate(d3.interpolateLab).clamp(true);
 
   function indexCard(ix, onClick, pressed) {
     const t = btn('em-tile', null, onClick), v = ix[state.period];
@@ -694,12 +719,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     later(() => multiChart($('mk-rel'), M.indices.map((x) => ({ name: x.name, color: IDX_COLOR[x.id], pts: hist(x).filter((p) => p.d >= start) })), { h: 260 }));
 
     $('mk-set-title').textContent = ix.set + ' by sector and company';
-    $('mk-set-sub').textContent = `Each box is a company, sized by its weight in the index and coloured by its ${pl[2] === 'year to date' ? 'year-to-date' : 'one-' + pl[2].replace('three months', 'quarter')} return. Select a box or a sector.`.replace('one-quarter', 'three-month');
+    $('mk-set-sub').textContent = `Return over the past ${pl[2]}. Select a sector or a company for detail.`.replace('past year to date', 'year to date');
     $('mk-set-note').textContent = ix.id === 'nasdaq' ? 'The Nasdaq Composite holds more than 3,000 stocks. This view uses the Nasdaq-100, its 100 largest non-financial companies.' : '';
-    const sc = heat(k), scale = $('mk-scale'), bar = el('i'); bar.style.background = `linear-gradient(90deg, ${C.down}, ${C.mid}, ${C.up})`;
-    scale.replaceChildren(el('span', '', '−' + CLAMP[k] + '%'), bar, el('span', '', '+' + CLAMP[k] + '%'));
     const ms = members(ix);
-    later(() => marketMap($('mk-map'), ix, ms, sc));
 
     const secs = ix.sectors.slice().sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9)), smax = d3.max(secs, (s) => Math.abs(s[k] || 0)) || 1;
     $('mk-sectors').replaceChildren(...secs.map((s) => {
@@ -743,43 +765,6 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       card.append(h, g, el('p', 'em-note', 'AAA to BBB are investment grade. BB and below are high yield.'));
       return card;
     })());
-  }
-
-  function marketMap(box, ix, ms, sc) {
-    box.replaceChildren();
-    const W = box.clientWidth, H = box.clientHeight, k = state.period;
-    if (!W) return;
-    const root = d3.hierarchy({ children: ix.sectors.map((s) => ({ sec: s, children: ms.filter((m) => m.s === s.s) })) }).sum((d) => d.wt || 0).sort((a, b) => b.value - a.value);
-    d3.treemap().size([W, H]).paddingTop((d) => (d.depth === 1 ? 17 : 0)).paddingInner((d) => (d.depth === 0 ? 5 : 1)).round(true)(root);
-    const tip = el('div', 'em-tip'); tip.hidden = true;
-    const frag = document.createDocumentFragment();
-    root.children.forEach((g) => {
-      const s = g.data.sec, lab = btn('em-map-sec', null, () => open('sector', ix.id + ':' + s.s)), w = g.x1 - g.x0;
-      if (w < 34 || g.y1 - g.y0 < 30) return;
-      lab.textContent = M.sectors[s.s] + (w > 190 ? '  ' + pct(s[k], 1) : '');
-      lab.style.cssText = `left:${g.x0}px;top:${g.y0}px;width:${w}px`; lab.title = `${M.sectors[s.s]}: ${pct(s[k], 1)}. Open the sector.`;
-      frag.append(lab);
-    });
-    root.leaves().forEach((n) => {
-      const d = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0; if (w < 1 || h < 1) return;
-      const v = d[k], bg = v === null ? C.mid : sc(v), c = btn('em-cell', null, () => open('stock', d.t));
-      c.style.cssText = `left:${n.x0}px;top:${n.y0}px;width:${w}px;height:${h}px;background:${bg};color:${d3.lab(bg).l < 50 ? '#fff' : C.ink}`;
-      c.setAttribute('aria-label', `${d.n}, ${pct(v)}`);
-      if (w > 34 && h > 15) {
-        const fs = Math.max(9.5, Math.min(22, Math.sqrt(w * h) / 5.5)); c.style.fontSize = fs + 'px';
-        c.append(el('b', '', d.t));
-        if (h > fs * 2.5 && w > 40) { const p = el('span', '', pct(v, 1)); p.style.fontSize = Math.max(9, fs * 0.78) + 'px'; c.append(p); }
-      }
-      const show = (ev) => {
-        tip.replaceChildren(el('b', '', `${d.t}  ${pct(v)}`), el('div', 't', d.n), el('div', 't', `${M.sectors[d.s]} · ${d3.format('.2f')(d.wt)}% of index`));
-        tip.hidden = false;
-        const r = box.getBoundingClientRect(), px = ev && ev.clientX ? ev.clientX - r.left : n.x0 + w / 2, py = ev && ev.clientY ? ev.clientY - r.top : n.y0;
-        tip.style.left = Math.min(Math.max(0, px + 14), W - tip.offsetWidth) + 'px'; tip.style.top = Math.max(0, Math.min(H - tip.offsetHeight, py - tip.offsetHeight - 10)) + 'px';
-      };
-      c.onpointermove = show; c.onfocus = () => show(); c.onpointerleave = c.onblur = () => { tip.hidden = true; };
-      frag.append(c);
-    });
-    frag.append(tip); box.append(frag);
   }
 
   function indicators() {
@@ -1017,6 +1002,27 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const dlg = $('em-drawer');
   $('em-dclose').onclick = () => dlg.close();
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+  /* ---------- headline ticker ---------- */
+  const N = typeof NEWS !== 'undefined' ? NEWS : null;
+  if (N && N.items && N.items.length) {
+    const TINT = { Markets: '#9DBBF2', Economy: '#F0B429', Politics: '#F2A3C6', Technology: '#8FD3AE', AI: '#FFFFFF' };
+    const ago = (iso) => { const h = (Date.now() - new Date(iso)) / 36e5; return h < 1 ? Math.max(1, Math.round(h * 60)) + 'm ago' : h < 24 ? Math.round(h) + 'h ago' : d3.timeFormat('%b %-d')(new Date(iso)); };
+    const item = (n, hidden) => {
+      const a = el('a', 'em-news-item'), c = el('span', 'em-news-c', n.c);
+      a.href = /^https:\/\//.test(n.u) ? n.u : '#'; a.target = '_blank'; a.rel = 'noopener noreferrer'; c.style.background = TINT[n.c] || '#fff';
+      a.append(c, el('span', 'em-news-t', n.t), el('span', 'em-news-s', n.s + ' · ' + ago(n.d)));
+      if (hidden) { a.setAttribute('aria-hidden', 'true'); a.tabIndex = -1; }
+      return a;
+    };
+    // The list is laid out twice so the loop has no seam.
+    const track = $('em-news-track'); track.append(...N.items.map((n) => item(n)), ...N.items.map((n) => item(n, true)));
+    $('em-news-time').textContent = d3.timeFormat('%b %-d, %-I:%M %p')(new Date(N.built));
+    $('em-news').hidden = false;
+    later(() => track.style.setProperty('--em-tick', Math.round(track.scrollWidth / 2 / 70) + 's'));
+    const pb = $('em-news-pause');
+    pb.onclick = () => { const on = $('em-news').classList.toggle('paused'); pb.setAttribute('aria-pressed', String(on)); pb.textContent = on ? '▶' : '❚❚'; pb.setAttribute('aria-label', on ? 'Resume headlines' : 'Pause headlines'); pb.title = on ? 'Resume' : 'Pause'; };
+  }
 
   const first = rows('indicators')[0];
   $('em-stamp').textContent = [first && first.retrieved ? 'Economic data retrieved ' + d3.timeFormat('%b %-d, %Y')(new Date(first.retrieved)) : '', M ? 'Markets at the close of ' + fDay(utc(M.asof)) : ''].filter(Boolean).join(' · ');
