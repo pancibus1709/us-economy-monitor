@@ -53,6 +53,13 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-flora { flex: 0 0 auto; width: 40px; height: 40px; }
 .em-title { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 4vw, 32px); line-height: 1.1; margin: 0; }
 .em-stamp { font-size: 12.5px; margin: 3px 0 0; opacity: .9; }
+.em-headtext { flex: 1 1 280px; min-width: 0; }
+.em-by { flex: 0 0 auto; margin-left: auto; font-size: 13px; line-height: 1.35; color: #fff !important; text-decoration: none; text-align: right; padding-block: 6px; }
+.em-by span { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; opacity: .85; }
+.em-by b { font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.em-by:hover b { text-decoration-thickness: 2px; }
+@media (max-width: 700px) { .em-head .em-wrap { flex-wrap: wrap; row-gap: 6px; } .em-by { flex-basis: 100%; margin-left: 0; text-align: left; padding-block: 10px 6px; border-top: 1px solid rgba(255, 255, 255, .22); } .em-by span { display: inline; margin-right: 6px; } }
+@media (pointer: coarse) { .em-by { padding-block: 13px; } }
 .em-ribbon { height: 5px; background: repeating-linear-gradient(90deg, var(--marigold) 0 28px, var(--down) 28px 40px, #2F7A52 40px 68px, var(--rosa) 68px 80px, var(--cobalt-deep) 80px 108px, var(--wall) 108px 112px); }
 
 .em-tabs { position: sticky; top: 0; z-index: 5; background: var(--wall); border-bottom: 1px solid var(--line); }
@@ -350,10 +357,11 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         <g fill="#F0B429"><circle cx="75" cy="38" r="15"/><circle cx="103" cy="52" r="15"/><circle cx="108" cy="82" r="15"/><circle cx="75" cy="98" r="15"/><circle cx="42" cy="82" r="15"/><circle cx="47" cy="52" r="15"/></g>
         <circle cx="75" cy="68" r="17" fill="#C9357A"/><circle cx="75" cy="68" r="7" fill="#B5263A"/>
       </svg>
-      <div>
+      <div class="em-headtext">
         <h1 class="em-title" id="em-title">US Economy Monitor</h1>
         <p class="em-stamp" id="em-stamp"></p>
       </div>
+      <a class="em-by" href="https://www.resolute-bd.com/" target="_blank" rel="noopener"><span>Built by</span> <b>Resolute Business Development</b></a>
     </div>
   </header>
   <div class="em-ribbon"></div>
