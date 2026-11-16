@@ -67,7 +67,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-seg button:hover { color: var(--ink); }
 .em-seg button[aria-pressed="true"] { background: var(--panel); color: var(--cobalt); box-shadow: 0 1px 2px rgba(20, 22, 31, .14); }
 .em-seglabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-3); margin-right: 8px; }
-.em-ctl { display: flex; align-items: center; }
+.em-ctl { display: flex; align-items: center; } .em-ctl[hidden] { display: none; }
 .em-asof { margin-left: auto; font-size: 12.5px; color: var(--ink-3); }
 
 .em-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -270,27 +270,48 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-livedot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); margin-right: 6px; vertical-align: 1px; }
 .em-livedot.on { background: var(--up); box-shadow: 0 0 0 3px var(--up-wash); }
 .em-split { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
-.em-split.rev { grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); }
-@media (max-width: 980px) { .em-split, .em-split.rev { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 980px) { .em-split { grid-template-columns: minmax(0, 1fr); } }
 .em-chip i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
 .em-chip:disabled { opacity: .45; cursor: default; border-color: var(--line); color: inherit; }
 .em-coin b { font-weight: 700; margin-right: 7px; } .em-coin small { color: var(--ink-3); font-size: 12px; }
 .em-table td .em-chart { display: block; width: 96px; height: 26px; }
 .em-lrow { display: grid; grid-template-columns: 104px minmax(50px, 1fr) 52px 48px; gap: 12px; align-items: center; width: calc(100% + 12px); text-align: left; background: none; border: 0; padding: 6px; margin: 0 -6px; border-radius: 6px; cursor: pointer; font-size: 13px; font-variant-numeric: tabular-nums; }
 .em-lrow:hover { background: var(--cobalt-wash); }
-.em-lrow[aria-pressed="true"] { background: var(--cobalt-wash); box-shadow: inset 3px 0 0 var(--cobalt); }
 .em-lrow b { font-weight: 700; } .em-lrow .v { text-align: right; font-weight: 700; } .em-lrow .c { text-align: right; color: var(--ink-2); }
 .em-lhead { display: grid; grid-template-columns: 104px minmax(50px, 1fr) 52px 48px; gap: 12px; font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 0 0 4px; }
 .em-lhead .v, .em-lhead .c { text-align: right; }
 .em-jump { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; width: 100%; text-align: left; margin-top: 12px; padding: 10px 12px; background: var(--cobalt-wash); border: 1px solid transparent; border-radius: 8px; cursor: pointer; font-size: 13px; }
 .em-jump:hover { border-color: var(--cobalt); } .em-jump b { font-size: 16px; font-variant-numeric: tabular-nums; } .em-jump span:last-child { color: var(--cobalt); font-weight: 700; font-size: 12.5px; }
-.em-eq { font-size: 13.5px; color: var(--ink-2); margin: 6px 0 0; font-variant-numeric: tabular-nums; } .em-eq b { color: var(--ink); }
 .em-nlist { display: grid; } .em-nlist a { display: block; padding: 9px 0; border-top: 1px solid var(--line-2); text-decoration: none; color: var(--ink) !important; font-size: 14.5px; font-weight: 600; line-height: 1.35; }
 .em-nlist a:hover span:first-child { text-decoration: underline; text-underline-offset: 3px; } .em-nlist a small { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; margin-top: 2px; }
 .em-news-btn.txt { width: auto; padding: 0 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+#cx-gap { scroll-margin-top: 56px; }
 .em-stale { background: var(--marigold); color: var(--ink); border-radius: 4px; padding: 0 5px; font-weight: 700; }
 .em-cap { font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
 .em-sechead .em-ctl { margin-left: auto; }
+/* Show more, show less: one button under a long list, or a group header inside a table. */
+.em .em-toggle { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; font-size: 13.5px; font-weight: 700; line-height: 1.3; color: var(--cobalt); text-align: left; cursor: pointer; }
+.em .em-toggle:hover { border-color: var(--cobalt); background: var(--cobalt-wash); }
+.em-chev { flex: 0 0 auto; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .12s; }
+[aria-expanded="false"] > .em-chev { transform: rotate(-45deg); }
+.em .em-grp { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; padding: 3px 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--cobalt); text-align: left; cursor: pointer; }
+.em .em-grp:hover { color: var(--cobalt-deep); }
+.em-grp small { font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+/* Credit quality gap */
+.em-gapctl { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.em-gapctl .em-select { min-width: 150px; }
+@media (max-width: 700px) { .em-gapctl > .em-ctl { width: 100%; } .em-gapctl .em-seglabel { min-width: 68px; } .em-gapctl .em-select { flex: 1 1 auto; } }
+.em-key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+.em-key.area { height: 10px; vertical-align: -1px; opacity: .55; }
+.em-figs .em-stat-v { font-size: 19px; font-weight: 700; }
+.em-figs .em-delta { white-space: normal; }
+/* Sources */
+.em-srcs { max-height: none; }
+.em-srcs td { white-space: normal; vertical-align: top; line-height: 1.4; }
+.em-srcs td:first-child { font-weight: 600; width: 34%; }
+.em-srcs td:last-child { color: var(--ink-2); width: 24%; }
+.em-flag { border-left: 4px solid var(--marigold); background: #FDF6E3; padding: 9px 12px; margin: 10px 0 0; font-size: 14px; color: var(--ink-2); border-radius: 0 6px 6px 0; }
+.em-tile .em-badge { margin-left: 4px; white-space: nowrap; }
 /* Phone layout */
 @media (max-width: 700px) {
   .em-g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -362,7 +383,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         <div class="em-sec">
           <div class="em-sechead"><div><h2 class="em-h2">Historical range</h2><p class="em-sub" id="ov-rank-sub"></p></div>
             <div class="em-ctl"><span class="em-seglabel">Period</span><div class="em-seg" data-range role="group" aria-label="Period"></div></div></div>
-          <div class="em-card"><div class="em-rank" id="ov-rank"></div></div>
+          <button type="button" class="em-toggle" id="ov-rank-toggle" aria-expanded="false" aria-controls="ov-rank-card"></button>
+          <div class="em-card" id="ov-rank-card" style="margin-top:12px" hidden><div class="em-rank" id="ov-rank"></div></div>
         </div>
       </div>
     </section>
@@ -447,15 +469,16 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     <section class="em-panel" id="p-connections" role="tabpanel" hidden>
       <div class="em-wrap">
         <div class="em-sec">
-          <div class="em-sechead"><div><h2 class="em-h2">How the numbers connect</h2><p class="em-sub">Ten pairs of series that move each other. Select one for the charts and the mechanism.</p></div></div>
+          <div class="em-sechead"><div><h2 class="em-h2">How the numbers connect</h2><p class="em-sub">Ten pairs of series that move each other. Select one for the charts and the mechanism.</p></div>
+            <button type="button" class="em-chip" id="cx-jump">Compare credit spreads ↓</button></div>
           <div class="em-grid em-gcards" id="cx-cards"></div>
         </div>
         <div class="em-sec" id="cx-gap">
-          <div class="em-sechead"><div><h2 class="em-h2">Credit quality gap</h2><p class="em-sub">How much more the weaker rating pays than the stronger one, in basis points. The gap between CCC and AAA is the price of the weakest credit against the safest. It widens when lenders start to separate strong borrowers from fragile ones, often before stress shows in the economic data.</p></div>
-            <div class="em-ctl"><span class="em-seglabel">History</span><div class="em-seg" id="cx-gap-range" role="group" aria-label="Gap history"></div></div></div>
-          <div class="em-tools" id="cx-gap-tools"></div>
-          <div class="em-grid em-split rev" id="cx-gap-body"></div>
-          <p class="em-note" id="cx-gap-note"></p>
+          <div class="em-sechead"><div><h2 class="em-h2">Credit quality gap</h2><p class="em-sub">Pick two groups of corporate bonds to see how much more yield the riskier one pays than the safer one, in basis points (hundredths of a percentage point).</p></div></div>
+          <div class="em-card">
+            <div class="em-gapctl" id="cx-gap-tools"></div>
+            <div id="cx-gap-body"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -473,38 +496,47 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 
     <section class="em-panel" id="p-sources" role="tabpanel" hidden>
       <div class="em-wrap"><div class="em-sec">
-        <div class="em-sechead"><h2 class="em-h2">Sources and method</h2></div>
-        <details class="em-method" open>
-          <summary>Economic data</summary>
-          <p>Each series comes from the agency that produces it. Labor and price data: Bureau of Labor Statistics. Treasury yields, federal debt, the deficit and the average rate on federal debt: US Treasury. Federal funds rate: Federal Reserve Bank of New York. Housing starts, permits, retail sales and business applications: Census Bureau. Mortgage rates: Freddie Mac. Consumer sentiment: University of Michigan.</p>
-          <p>The page reads these releases through FRED, the Federal Reserve Bank of St. Louis database, which republishes each agency's figures unchanged. Federal debt and the average rate on it come straight from the Treasury's Fiscal Data service, and consumer sentiment from the University of Michigan. Every refresh rebuilds each indicator's history and compares it with what was already published. An indicator that does not match keeps its last good reading, so a change at a source cannot put a wrong number here unnoticed.</p>
-          <p>Business AI adoption is the Ramp AI Index, read from Ramp's published page by hand. It does not refresh with the rest.</p>
-        </details>
-        <details class="em-method" open>
-          <summary>Market data</summary>
-          <p>Index levels and share prices are daily closes from Yahoo Finance. Returns are price returns and exclude dividends.</p>
-          <p>Index members and weights come from the daily holdings of the funds that track each index: SPY for the S&amp;P 500, QQQ for the Nasdaq-100 and DIA for the Dow. The Nasdaq Composite holds more than 3,000 stocks, so its company view uses the Nasdaq-100.</p>
-          <p>Sectors follow the Global Industry Classification Standard (GICS) that S&amp;P and MSCI maintain. S&amp;P 500 members carry the sector and sub-industry listed in Wikipedia's constituent table. Fifteen Nasdaq-100 companies outside the S&amp;P 500 were classified by hand and are listed in <code>scripts/refresh_markets.py</code>.</p>
-          <p>A sector's return is the weighted average of today's members, each weighted by its share of the index at the start of the period. Companies that left an index during the period are not counted, so sector returns over a year run higher than the index itself.</p>
-          <p>The VIX is Cboe's index of expected S&amp;P 500 volatility and the MOVE is ICE BofA's index of expected Treasury yield volatility. Both are daily closes from Yahoo Finance.</p>
-          <p>Credit spreads are ICE BofA option-adjusted spreads for the US corporate index, the US high yield index and each rating from AAA to CCC and lower, read from FRED. FRED serves a rolling three years of daily history for these series. The page keeps every day it has read, so its history grows beyond three years from here on. A gap between two ratings is one spread minus the other on the same day.</p>
-        </details>
-        <details class="em-method" open>
-          <summary>Crypto</summary>
-          <p>Prices, market value, trading volume, supply and the 24-hour, 7-day, 30-day and one-year changes come from CoinGecko, which averages prices across exchanges. The page asks CoinGecko for current figures when it opens and once a minute after that. If that request fails, it shows the last saved snapshot and says so.</p>
-          <p>Price history is the daily close at midnight UTC from Yahoo Finance: daily for the past 400 days and weekly before that. Year to date is measured from the December 31 close. The tab covers the largest tokens by market value. Dollar-pegged stablecoins and tokenised claims on other assets are left out.</p>
-        </details>
-        <details class="em-method" open>
-          <summary>Headlines</summary>
-          <p>The ticker shows headlines from the public feeds of Bloomberg, The Wall Street Journal, the Financial Times, MarketWatch, The New York Times, The Economist, the Federal Reserve, Politico, The Hill, MIT Technology Review, Ars Technica, CoinDesk, The Block and Decrypt, grouped as markets, economy, politics, technology, AI and crypto. Outlets take turns within each group so no single feed fills it. Each headline links to the publisher's article, and "List" shows them all at once. The time beside "Latest" is when the list was last refreshed.</p>
-        </details>
-        <details class="em-method" open>
-          <summary>Refresh schedule</summary>
-          <p>Headlines, crypto and economic indicators refresh every hour from about 6:47 am to 10:47 pm Eastern. Stock and volatility data refresh after the close on trading days, and credit spreads the next morning, when they are published. Crypto prices also update live in the browser. The header shows when each set was last updated and flags any that is overdue.</p>
+        <div class="em-sechead"><div><h2 class="em-h2">Sources and method</h2><p class="em-sub">Where every number on this page comes from, and how often it is refreshed. Scheduled refreshes run every hour from 6:47 am to 10:47 pm Eastern. The header shows when each set was last updated and flags any that is overdue.</p></div></div>
+        <div class="em-tablewrap em-srcs"><table class="em-table">
+          <thead><tr><th>Data</th><th>Source</th><th>Refreshed</th></tr></thead>
+          <tbody>
+            <tr class="em-group"><td colspan="3">Economy, read through FRED</td></tr>
+            <tr><td>Jobs, wages, prices and productivity</td><td><a href="https://www.bls.gov/" target="_blank" rel="noopener">Bureau of Labor Statistics</a></td><td>Checked hourly</td></tr>
+            <tr><td>GDP, PCE inflation, consumer spending and saving</td><td><a href="https://www.bea.gov/" target="_blank" rel="noopener">Bureau of Economic Analysis</a></td><td>Checked hourly</td></tr>
+            <tr><td>Industrial production</td><td><a href="https://www.federalreserve.gov/releases/g17/current/" target="_blank" rel="noopener">Federal Reserve Board</a></td><td>Checked hourly</td></tr>
+            <tr><td>Housing starts, building permits, retail sales and business applications</td><td><a href="https://www.census.gov/" target="_blank" rel="noopener">Census Bureau</a></td><td>Checked hourly</td></tr>
+            <tr><td>Mortgage rates</td><td><a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac</a></td><td>Checked hourly</td></tr>
+            <tr><td>Treasury yields</td><td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates" target="_blank" rel="noopener">US Treasury</a></td><td>Checked hourly</td></tr>
+            <tr><td>Federal funds rate</td><td><a href="https://www.newyorkfed.org/markets/reference-rates/effr" target="_blank" rel="noopener">Federal Reserve Bank of New York</a></td><td>Checked hourly</td></tr>
+            <tr><td>Federal deficit</td><td><a href="https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/" target="_blank" rel="noopener">US Treasury, Monthly Treasury Statement</a></td><td>Checked hourly</td></tr>
+            <tr class="em-group"><td colspan="3">Economy, read directly</td></tr>
+            <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Checked hourly</td></tr>
+            <tr><td>Consumer sentiment</td><td><a href="https://www.sca.isr.umich.edu/" target="_blank" rel="noopener">University of Michigan</a></td><td>Checked hourly</td></tr>
+            <tr><td>Business AI adoption</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a></td><td>By hand</td></tr>
+            <tr class="em-group"><td colspan="3">Markets</td></tr>
+            <tr><td>Index levels, share prices, VIX and MOVE</td><td><a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a></td><td>After the close on trading days</td></tr>
+            <tr><td>Index members and weights</td><td>Fund holdings from <a href="https://www.ssga.com/us/en/intermediary/etfs" target="_blank" rel="noopener">State Street</a> (SPY and DIA) and <a href="https://www.invesco.com/qqq-etf/en/home.html" target="_blank" rel="noopener">Invesco</a> (QQQ)</td><td>After the close on trading days</td></tr>
+            <tr><td>Sectors (GICS)</td><td><a href="https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" target="_blank" rel="noopener">Wikipedia's S&amp;P 500 table</a></td><td>After the close on trading days</td></tr>
+            <tr><td>Credit spreads</td><td><a href="https://fred.stlouisfed.org/series/BAMLH0A0HYM2" target="_blank" rel="noopener">ICE BofA indices, via FRED</a></td><td>The next morning, on weekdays</td></tr>
+            <tr class="em-group"><td colspan="3">Crypto</td></tr>
+            <tr><td>Prices, market value and volume</td><td><a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a></td><td>Live in the browser, saved hourly</td></tr>
+            <tr><td>Price history</td><td><a href="https://finance.yahoo.com/crypto/" target="_blank" rel="noopener">Yahoo Finance</a></td><td>Hourly</td></tr>
+            <tr class="em-group"><td colspan="3">Headlines</td></tr>
+            <tr><td>Headline ticker</td><td>14 outlets: <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a>, <a href="https://www.wsj.com/" target="_blank" rel="noopener">The Wall Street Journal</a>, <a href="https://www.ft.com/" target="_blank" rel="noopener">Financial Times</a>, <a href="https://www.marketwatch.com/" target="_blank" rel="noopener">MarketWatch</a>, <a href="https://www.nytimes.com/" target="_blank" rel="noopener">The New York Times</a>, <a href="https://www.economist.com/" target="_blank" rel="noopener">The Economist</a>, <a href="https://www.federalreserve.gov/" target="_blank" rel="noopener">Federal Reserve</a>, <a href="https://www.politico.com/" target="_blank" rel="noopener">Politico</a>, <a href="https://thehill.com/" target="_blank" rel="noopener">The Hill</a>, <a href="https://www.technologyreview.com/" target="_blank" rel="noopener">MIT Technology Review</a>, <a href="https://arstechnica.com/" target="_blank" rel="noopener">Ars Technica</a>, <a href="https://www.coindesk.com/" target="_blank" rel="noopener">CoinDesk</a>, <a href="https://www.theblock.co/" target="_blank" rel="noopener">The Block</a>, <a href="https://decrypt.co/" target="_blank" rel="noopener">Decrypt</a></td><td>Hourly</td></tr>
+          </tbody>
+        </table></div>
+        <p class="em-note">The first group is read through <a href="https://fred.stlouisfed.org/" target="_blank" rel="noopener">FRED</a>, the Federal Reserve Bank of St. Louis database, which republishes each agency's figures unchanged. Economic figures are checked every hour, though most are published only monthly or quarterly.</p>
+
+        <div style="margin-top:22px">
+        <details class="em-method">
+          <summary>How the readings are computed</summary>
+          <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages, and the headline shows the latest daily or weekly figure.</p>
+          <p>The rank is the share of readings in the selected period at or below the latest one. The range runs from that period's low to its high. Economic history on this page starts in 2017, so the longest period is labelled "Max".</p>
+          <p>Correlations use monthly data since 2018. That window holds one pandemic and one inflation cycle, which dominate the result. A correlation shows how two series moved together. It does not show that one causes the other. The explanations of mechanism and effects describe standard economic relationships. They do not forecast.</p>
         </details>
         <details class="em-method">
           <summary>Seasonal adjustment</summary>
-          <p>Many series move with the calendar. Seasonal adjustment estimates that pattern and removes it so one month can be compared with the next. Agencies revise the adjustment every year, which is one reason past months change.</p>
+          <p>Many series move with the calendar. Seasonal adjustment estimates that pattern and removes it, so one month can be compared with the next. Agencies revise the adjustment every year, which is one reason past months change.</p>
           <ul>
             <li>SA: seasonally adjusted. Month-to-month changes are meaningful.</li>
             <li>SAAR: seasonally adjusted and scaled to an annual rate. A quarter of 0.5% growth is reported as about 2%.</li>
@@ -513,16 +545,40 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
           <p>CPI and producer price inflation are 12-month changes computed from unadjusted indexes, which is how the Bureau of Labor Statistics states them. Core PCE uses the Bureau of Economic Analysis's adjusted index.</p>
         </details>
         <details class="em-method">
-          <summary>How the readings are computed</summary>
-          <p>Changes, year-ago comparisons, spreads and ratios are calculated from the source series after each refresh. Where an indicator is derived, its formula is shown with it. Daily and weekly rates are charted as monthly averages, and the headline shows the latest daily or weekly figure. The rank is the share of readings in the selected period at or below the latest one, and the range runs from that period's low to its high. Economic history on this page starts in 2017, so the longest period shown is labelled "Max".</p>
-          <p>Correlations use monthly data since 2018. That window holds one pandemic and one inflation cycle, which dominate the result. A correlation shows how two series moved together. It does not show that one causes the other.</p>
-          <p>The explanations of mechanism and effects describe standard economic relationships. They do not forecast.</p>
+          <summary>Market method</summary>
+          <p>Index levels and share prices are daily closes. Returns are price returns and leave out dividends.</p>
+          <p>Index members and weights come from the daily holdings of the funds that track each index: SPY for the S&amp;P 500, QQQ for the Nasdaq-100 and DIA for the Dow. The Nasdaq Composite holds more than 3,000 stocks, so its company view uses the Nasdaq-100.</p>
+          <p>Sectors follow the Global Industry Classification Standard (GICS) that S&amp;P and MSCI maintain. S&amp;P 500 members carry the sector and sub-industry listed in Wikipedia's table. Fifteen Nasdaq-100 companies outside the S&amp;P 500 were classified by hand; they are listed in <code>scripts/refresh_markets.py</code>.</p>
+          <p>A sector's return is the weighted average of today's members, each weighted by its share of the index at the start of the period. Companies that left an index during the period are not counted, so sector returns over a year run higher than the index itself.</p>
+          <p>The VIX is Cboe's index of expected S&amp;P 500 swings. The MOVE is ICE BofA's index of expected swings in Treasury yields.</p>
+        </details>
+        <details class="em-method">
+          <summary>Credit spreads and gaps</summary>
+          <p>Credit spreads are ICE BofA option-adjusted spreads for the US corporate index, the US high yield index and each rating from AAA to CCC and lower. FRED serves a rolling three years of daily history for these series. The page keeps every day it has read, so its history grows beyond three years from here on.</p>
+          <p>A gap between two ratings is one spread minus the other on the same day. The one with the wider spread today is always listed first, so the gap reads as a positive number.</p>
+        </details>
+        <details class="em-method">
+          <summary>Crypto method</summary>
+          <p>Prices, market value, trading volume, supply and the 24-hour, 7-day, 30-day and one-year changes come from CoinGecko, which averages prices across exchanges. The page asks CoinGecko for current figures when it opens and once a minute after that. If that fails, it shows the last saved snapshot and says so.</p>
+          <p>Price history is the daily close at midnight UTC: daily for the past 400 days and weekly before that. Year to date is measured from the December 31 close. The tab covers the largest tokens by market value. Dollar-pegged stablecoins and tokenised claims on other assets are left out.</p>
+        </details>
+        <details class="em-method">
+          <summary>Headlines</summary>
+          <p>The ticker shows headlines from the outlets' public feeds, grouped as markets, economy, politics, technology, AI and crypto. Outlets take turns within each group so no single feed fills it. Each headline links to the publisher's article, and "List" shows them all at once. The time beside "Latest" is when the list was last refreshed.</p>
+        </details>
+        <details class="em-method">
+          <summary>How the data is checked</summary>
+          <p>Every refresh rebuilds each indicator's full history and compares it with what is already on the page. An indicator that does not match keeps its last good reading, so a change at a source cannot put a wrong number here unnoticed.</p>
+          <p>Each data file is also checked before it is published: it must read correctly and hold a minimum number of indicators, companies, tokens or headlines. A file that fails is not published, and the previous one stays.</p>
         </details>
         <details class="em-method">
           <summary>Known gaps</summary>
-          <p>Federal statistical agencies did not collect some October 2025 data during the lapse in appropriations. Those months appear as breaks in the affected charts, and year-over-year comparisons that need them are blank. Retail sales are in current dollars. The shaded band on economic charts marks the 2020 recession as dated by the National Bureau of Economic Research.</p>
-          <p>This page is for information. It is not investment advice.</p>
+          <p>Federal statistical agencies did not collect some October 2025 data during the 2025 government shutdown. Those months appear as breaks in the affected charts, and year-over-year comparisons that need them are blank.</p>
+          <p>For the same reason, CPI inflation and the measures built on it have no October 2026 reading: there is no October 2025 figure to compare it with. These indicators move from September 2026 straight to November 2026, and are marked on the Indicators tab.</p>
+          <p>Retail sales are in current dollars. The shaded band on economic charts marks the 2020 recession as dated by the National Bureau of Economic Research.</p>
         </details>
+        </div>
+        <p class="em-note" style="font-size:13.5px;color:var(--ink-2);margin-top:16px">This page is for information. It is not investment advice.</p>
       </div></div>
     </section>
   </main>
@@ -552,10 +608,12 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const CY_PERIODS = [['h24', '24H', '24 hours'], ['d7', '7D', 'seven days'], ['d30', '30D', '30 days'], ['ytd', 'YTD', 'year to date'], ['y1', '1Y', 'year']];
   const CY_RANGES = [[1 / 12, '1M'], [0.25, '3M'], [1, '1Y'], [3, '3Y'], [5, '5Y'], [99, 'Max']];
   const CR_RANGES = [[0.25, '3M'], [0.5, '6M'], [1, '1Y'], [99, 'All']];
-  const GAP_PRESETS = [['ccc', 'aaa'], ['hy', 'ig'], ['bb', 'bbb'], ['ccc', 'b'], ['b', 'bb'], ['bbb', 'aaa']];
+  const GAP_IDS = ['aaa', 'aa', 'a', 'bbb', 'ig', 'bb', 'b', 'ccc', 'hy'];
   const LADDER = ['aaa', 'aa', 'a', 'bbb', 'bb', 'b', 'ccc'];
   const state = { tab: 'overview', theme: 'all', range: 99, volRange: 3, crRange: 99, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [],
-    cyPeriod: 'h24', cyRange: 1, cySel: ['bitcoin', 'ethereum', 'solana'], gapA: 'ccc', gapB: 'aaa', gapRange: 99 };
+    cyPeriod: 'h24', cyRange: 1, cySel: ['bitcoin', 'ethereum', 'solana'], gapA: 'ccc', gapB: 'aaa', gapRange: 99, gapSwap: false,
+    // Long lists start collapsed. These remember what the reader opened, across re-renders.
+    cyAll: false, rankOpen: false, econOpen: {}, secOpen: null };
 
   const $ = (id) => document.getElementById(id);
   const utc = (s) => new Date(s + (s.length === 10 ? 'T00:00:00Z' : ''));
@@ -572,6 +630,21 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   }
   const btn = (cls, text, fn) => { const b = el('button', cls, text); b.type = 'button'; if (fn) b.onclick = () => holdFocus(fn); return b; };
   const rows = (id) => (dash.data(id).status === 'ok' ? dash.data(id).data : []);
+  // Fill a show-more button: a chevron, then the label. The button itself is kept, so focus stays on it.
+  function toggleLabel(b, open, text) { b.setAttribute('aria-expanded', String(open)); b.replaceChildren(el('i', 'em-chev'), el('span', '', text)); return b; }
+  // The button under a table that shows its remaining rows. Pass text null to remove it.
+  function tableMore(tb, open, text, fn) {
+    const wrap = tb.closest('.em-tablewrap'); let b = wrap.nextElementSibling;
+    if (!b || !b.classList.contains('em-toggle')) { if (text === null) return; b = btn('em-toggle'); wrap.after(b); }
+    if (text === null) { b.remove(); return; }
+    if (tb.id) b.setAttribute('aria-controls', tb.id);
+    b.onclick = () => holdFocus(fn); toggleLabel(b, open, text);
+  }
+  // A theme or index header row inside a table that opens and closes the rows under it.
+  function groupRow(name, count, cols, open, fn) {
+    const g = el('tr', 'em-group'), gd = el('td'), b = btn('em-grp', null, fn);
+    gd.colSpan = cols; toggleLabel(b, open, name); b.lastChild.append(' ', el('small', '', '· ' + count)); gd.append(b); g.append(gd); return g;
+  }
   const themeName = (id) => (THEMES.find((x) => x[0] === id) || [0, id])[1];
   const minus = (s) => s.replace('-', '−');
 
@@ -618,6 +691,27 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     return out;
   }
   const byId = () => new Map(rows('indicators').map((r) => [r.id, r]));
+  // A 12-month change cannot be worked out when the month a year before the next reading was never collected.
+  // Such an indicator stays on its last month, which looks stale. Spot it from the data: a monthly year-over-year
+  // series with no value for the month 11 months before its latest one.
+  const fLong = d3.utcFormat('%B %Y'), skipCache = new Map();
+  function skipped(r) {
+    if (!r || r.freq !== 'M' || !/yoy/.test(r.id)) return null;
+    if (skipCache.has(r.id)) return skipCache.get(r.id);
+    const pts = series(r.id); let out = null;
+    if (pts.length > 12) {
+      const end = pts[pts.length - 1].d, mon = (k) => new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() + k, 1)), have = new Set(pts.map((p) => +p.d));
+      if (!have.has(+mon(-11))) {
+        let k = -10; while (k <= 0 && !have.has(+mon(k))) k++;
+        out = { blocked: mon(1), missing: mon(-11), next: mon(k + 12) };
+      }
+    }
+    skipCache.set(r.id, out); return out;
+  }
+  function skipText(sk) {
+    const lapse = sk.missing.getUTCFullYear() === 2025 && sk.missing.getUTCMonth() === 9 ? ' during the 2025 government shutdown' : '';
+    return `There is no ${fLong(sk.blocked)} reading: ${fLong(sk.missing)} was never collected${lapse}, so there is no year-ago figure to compare it with. The next reading shown will be ${fLong(sk.next)}.`;
+  }
   const later = (fn) => requestAnimationFrame(fn);
 
   /* ---------- charts ---------- */
@@ -946,6 +1040,16 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     $('ov-rank').replaceChildren(...groups);
     $('ov-rank').parentNode.querySelectorAll('.em-track-ends').forEach((e) => e.remove());
     $('ov-rank').after(ends);
+    // The full list is long, so it stays folded away until asked for.
+    const n = groups.reduce((t, g) => t + g.querySelectorAll('.em-rank-row').length, 0), tg = $('ov-rank-toggle');
+    $('ov-rank-card').hidden = !state.rankOpen;
+    tg.onclick = () => { state.rankOpen = !state.rankOpen; overviewRankToggle(n); };
+    overviewRankToggle(n);
+  }
+  function overviewRankToggle(n) {
+    $('ov-rank-card').hidden = !state.rankOpen;
+    const rc = $('ov-rank-toggle').closest('.em-sec').querySelector('.em-ctl'); if (rc) rc.hidden = !state.rankOpen;
+    toggleLabel($('ov-rank-toggle'), state.rankOpen, state.rankOpen ? 'Hide the range' : `Show the range for all ${n} indicators`);
   }
 
   function overviewCrypto() {
@@ -1006,7 +1110,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const head = el('thead'), hr = el('tr'), body = el('tbody');
     [['#', 'num'], ['Token'], ['Price', 'num'], ...CY_PERIODS.map((p) => [p[1], 'num']), ['Market value', 'num'], ['24h volume', 'num'], ['Past year']].forEach(([l, c]) => hr.append(el('th', c || '', l)));
     head.append(hr);
-    K.coins.forEach((c, i) => {
+    // Top five by default. One flag for both copies of the table, so a live price update keeps the choice.
+    const TOP = 5, many = K.coins.length > TOP;
+    (many && !state.cyAll ? K.coins.slice(0, TOP) : K.coins).forEach((c, i) => {
       const tr = el('tr'), name = el('td', 'em-coin'), sp = el('span', 'em-chart'), spc = el('td');
       name.append(el('b', '', c.sym), el('small', '', c.name)); spc.append(sp);
       tr.append(el('td', 'num', String(i + 1)), name, el('td', 'num', usd(c.p)), ...CY_PERIODS.map(([k]) => el('td', 'num ' + dir(c[k]), pct(c[k], 1))), el('td', 'num', bigUsd(c.mc)), el('td', 'num', bigUsd(c.vol)), spc);
@@ -1015,6 +1121,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       sparkOf(sp, since(coinHist(c), 1), c.y1 === null || c.y1 === undefined ? C.a : c.y1 >= 0 ? C.up : C.down, c.name + ', past year', false);
     });
     tb.replaceChildren(head, body);
+    tableMore(tb, state.cyAll, many ? (state.cyAll ? `Show top ${TOP} only` : `Show all ${K.coins.length} tokens`) : null, () => { state.cyAll = !state.cyAll; coinTable(tb); });
   }
 
   function markets() {
@@ -1115,55 +1222,90 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     })());
   }
 
-  // Connections: the spread one rating pays over another, through time.
+  // Two spreads on one basis-point axis, with the space between them shaded so the gap reads as a distance.
+  // pts: [{ d, a, b }], o.a / o.b: { name, color }.
+  function pairChart(box, pts, o) {
+    box.replaceChildren();
+    if (pts.length < 2) { box.append(el('p', 'em-empty', 'There is not enough shared history to chart these two.')); return; }
+    const W = box.clientWidth || 300, H = o.h || (W < 520 ? 260 : 300), bp = (v) => d3.format(',')(Math.round(v));
+    const last = pts[pts.length - 1], endA = bp(last.a), endB = bp(last.b);
+    const m = { t: 12, r: Math.max(44, Math.max(endA.length, endB.length) * 7.6 + 18), b: 22, l: 44 };
+    const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.d)).range([m.l, W - m.r]);
+    const hi = d3.max(pts, (p) => Math.max(p.a, p.b)), lo = d3.min(pts, (p) => Math.min(p.a, p.b));
+    const y = d3.scaleLinear().domain([Math.min(0, lo), hi * 1.06]).nice().range([H - m.b, m.t]);
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+      .attr('aria-label', `${o.a.name} and ${o.b.name} spreads, ${fDay(pts[0].d)} to ${fDay(last.d)}. Latest ${endA} and ${endB} basis points, a gap of ${bp(last.a - last.b)}.`);
+    const ticks = y.ticks(5);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid);
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => bp(d));
+    const span = x.domain()[1] - x.domain()[0];
+    svg.append('g').selectAll('text').data(x.ticks(Math.max(4, Math.floor(W / 130)))).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle').text(d3.utcFormat(span > 200 * 864e5 ? "%b '%y" : '%b %-d'));
+    svg.append('path').attr('d', d3.area().x((p) => x(p.d)).y0((p) => y(p.b)).y1((p) => y(p.a))(pts)).attr('fill', C.c).attr('opacity', 0.13);
+    [['a', o.a.color], ['b', o.b.color]].forEach(([k, color]) => svg.append('path').attr('d', d3.line().x((p) => x(p.d)).y((p) => y(p[k]))(pts)).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('stroke-linejoin', 'round'));
+    // End labels, nudged apart so they never overlap.
+    const ya = y(last.a), yb = y(last.b), la = Math.min(ya, yb - 15), lb = Math.max(yb, ya + 15);
+    [[ya, la, endA, o.a.color], [yb, lb, endB, o.b.color]].forEach(([cy, ly, txt, color]) => {
+      svg.append('circle').attr('cx', x(last.d)).attr('cy', cy).attr('r', 4).attr('fill', '#fff').attr('stroke', color).attr('stroke-width', 2);
+      svg.append('text').attr('class', 'em-endlabel').attr('x', x(last.d) + 8).attr('y', ly + 4).text(txt);
+    });
+    if (yb - ya > 34) svg.append('text').attr('class', 'em-tick').attr('x', x(last.d) - 8).attr('y', (ya + yb) / 2 + 4).attr('text-anchor', 'end').text('Gap ' + bp(last.a - last.b));
+    const rule = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C.ink).attr('opacity', 0.5).attr('display', 'none');
+    const dots = [o.a.color, o.b.color].map((color) => svg.append('circle').attr('r', 4).attr('fill', '#fff').attr('stroke', color).attr('stroke-width', 2).attr('display', 'none'));
+    const tip = el('div', 'em-tip'); tip.hidden = true; box.append(tip);
+    const bis = d3.bisector((p) => p.d).center;
+    const row = (color, value, name, area) => { const r = el('div'), k = el('i'); k.style.background = color; if (area) { k.style.height = '8px'; k.style.opacity = '.5'; } r.append(k, el('b', '', value), el('span', 't', name)); return r; };
+    const move = (ev) => {
+      const p = pts[bis(pts, x.invert(d3.pointer(ev)[0]))]; if (!p) return;
+      rule.attr('display', null).attr('x1', x(p.d)).attr('x2', x(p.d));
+      dots[0].attr('display', null).attr('cx', x(p.d)).attr('cy', y(p.a)); dots[1].attr('display', null).attr('cx', x(p.d)).attr('cy', y(p.b));
+      tip.replaceChildren(el('div', 't', fDay(p.d)), row(o.a.color, bp(p.a) + ' bp', o.a.name), row(o.b.color, bp(p.b) + ' bp', o.b.name), row(C.c, bp(p.a - p.b) + ' bp', 'Gap', true));
+      tip.hidden = false;
+      const tw = tip.offsetWidth, px = x(p.d); tip.style.left = (px + 12 + tw > W ? Math.max(0, px - 12 - tw) : px + 12) + 'px'; tip.style.top = m.t + 'px';
+    };
+    const hide = () => { rule.attr('display', 'none'); dots.forEach((c) => c.attr('display', 'none')); tip.hidden = true; };
+    svg.append('rect').attr('x', m.l).attr('y', 0).attr('width', W - m.r - m.l).attr('height', H).attr('fill', 'transparent')
+      .on('pointermove', move).on('pointerdown', move).on('pointerleave', hide);
+  }
+
+  // Connections: pick two spreads and see the gap between them through time.
   function gapTool() {
     const sec = $('cx-gap'); sec.hidden = !CR; if (!CR) return;
-    const ids = ['aaa', 'aa', 'a', 'bbb', 'ig', 'bb', 'b', 'ccc', 'hy'], bp = (v) => d3.format(',')(Math.round(v)), sbp = (v) => (v === null ? 'n/a' : fmt(v, 'bp', 0, true));
-    // Whichever of the two pays the wider spread today is treated as the weaker one, so the gap reads the right way round.
-    const set = (a, b) => { if (a !== b && spread(a).latest < spread(b).latest) [a, b] = [b, a]; state.gapA = a; state.gapB = b; gapTool(); };
-    seg($('cx-gap-range'), CR_RANGES, state.gapRange, (v) => { state.gapRange = v; gapTool(); });
+    const bp = (v) => d3.format(',')(Math.round(v));
+    // Whichever of the two pays the wider spread today comes first, so the gap is never negative by accident.
+    const wider = (a, b) => a !== b && spread(a).latest < spread(b).latest;
+    const set = (a, b) => { state.gapSwap = wider(a, b); if (state.gapSwap) [a, b] = [b, a]; state.gapA = a; state.gapB = b; gapTool(); };
+    if (wider(state.gapA, state.gapB)) [state.gapA, state.gapB] = [state.gapB, state.gapA];
     const a = state.gapA, b = state.gapB, sa = spread(a), sb = spread(b);
-    const tools = $('cx-gap-tools'), chips = el('div', 'em-chips');
-    GAP_PRESETS.forEach(([x, y]) => { const c = btn('em-chip', rating(x) + ' minus ' + rating(y), () => set(x, y)); c.setAttribute('aria-pressed', String(x === a && y === b)); chips.append(c); });
-    const pick = (cur, label, fn) => { const w = el('label', 'em-ctl'), sel = el('select', 'em-select'); w.append(el('span', 'em-seglabel', label), sel); ids.forEach((id) => { const o = el('option', '', spread(id).name); o.value = id; o.selected = id === cur; sel.append(o); }); sel.onchange = () => holdFocus(() => fn(sel.value)); return w; };
-    tools.replaceChildren(chips, pick(a, 'Weaker', (v) => set(v, b)), pick(b, 'Stronger', (v) => set(a, v)));
+    const pick = (cur, label, fn) => {
+      const w = el('label', 'em-ctl'), sel = el('select', 'em-select'); w.append(el('span', 'em-seglabel', label), sel);
+      GAP_IDS.forEach((id) => { const o = el('option', '', spread(id).name); o.value = id; o.selected = id === cur; sel.append(o); });
+      sel.onchange = () => holdFocus(() => fn(sel.value)); return w;
+    };
+    const hw = el('div', 'em-ctl'), hs = el('div', 'em-seg'); hs.setAttribute('role', 'group'); hs.setAttribute('aria-label', 'Gap history'); hw.append(el('span', 'em-seglabel', 'History'), hs);
+    seg(hs, CR_RANGES, state.gapRange, (v) => { state.gapRange = v; state.gapSwap = false; gapTool(); });
+    $('cx-gap-tools').replaceChildren(pick(a, 'Compare', (v) => set(v, b)), pick(b, 'With', (v) => set(a, v)), hw);
 
-    const body = $('cx-gap-body'), note = $('cx-gap-note');
-    if (a === b) { body.replaceChildren(el('p', 'em-empty', 'Choose two different ratings to measure the gap between them.')); note.textContent = ''; return; }
-    const all = gapPts(a, b), pts = since(all, state.gapRange), sm = summary(pts), gap = sm.last, la = sa.latest, lb = sb.latest;
-    const left = el('div', 'em-card'), right = el('div', 'em-card');
-    const h = el('h3', 'em-card-h', rating(a) + ' minus ' + rating(b)); h.append(el('span', '', fDay(sm.to)));
-    const big = el('div', 'em-big', bp(gap)); big.append(el('small', '', 'basis points'));
-    const eq = el('p', 'em-eq'); eq.append(sa.name + ' ', el('b', '', bp(la) + ' bp'), ' minus ' + sb.name + ' ', el('b', '', bp(lb) + ' bp'), lb > 0 && la > lb ? `. ${rating(a)} pays ${d3.format('.1f')(la / lb)} times the ${rating(b)} spread.` : '.');
-    const stats = el('div', 'em-stats');
-    [['1 day', chgOver(all, 1)], ['1 month', chgOver(all, 30)], ['1 year', chgOver(all, 365)]].forEach(([l, v]) => stat(stats, l, sbp(v), adverse(v)));
-    const where = sm.rank >= 80 ? 'near the wide end of' : sm.rank <= 20 ? 'near the tight end of' : gap > sm.med ? 'wider than the middle of' : gap < sm.med ? 'tighter than the middle of' : 'in the middle of';
-    const call = el('p', 'em-callout', `At ${bp(gap)} bp the gap is ${where} its range over ${crLabel(state.gapRange)}: wider than on ${sm.rank}% of days, against a median of ${bp(sm.med)}.`);
-    call.style.margin = '14px 0 0';
-    left.append(h, big, eq, stats, rangeBar(sm, bp, `Median ${bp(sm.med)} · wider than ${sm.rank}% of days`), call);
-    // Where the CCC to AAA distance comes from, one rating step at a time.
-    const steps = el('div'), hd = el('div', 'em-lhead'); hd.append(el('span', '', 'Step'), el('span', '', 'Share of CCC minus AAA'), el('span', 'v', 'Gap'), el('span', 'c', '1M')); steps.append(hd);
-    const total = spread('ccc').latest - spread('aaa').latest;
-    LADDER.slice(1).forEach((id, i) => {
-      const lo = LADDER[i], g = gapPts(id, lo), v = g[g.length - 1].v, row = btn('em-lrow', null, () => set(id, lo)), bar = el('span', 'em-btrack'), fill = el('span', 'em-bfill'), m1 = chgOver(g, 30);
-      bar.style.display = 'block'; fill.style.display = 'block'; fill.style.width = Math.max(1, (100 * v) / total) + '%'; bar.append(fill);
-      row.setAttribute('aria-pressed', String(a === id && b === lo)); row.title = `${rating(id)} minus ${rating(lo)}: ${bp(v)} bp, ${d3.format('.0f')((100 * v) / total)}% of the CCC minus AAA gap`;
-      row.append(el('b', '', rating(lo) + ' to ' + rating(id)), bar, el('span', 'v', bp(v)), el('span', 'c', m1 === null ? 'n/a' : fmt(m1, '', 0, true)));
-      steps.append(row);
-    });
-    left.append(el('div', 'em-dlabel', 'Down the ladder, one step at a time'), steps);
+    const body = $('cx-gap-body');
+    if (a === b) { body.replaceChildren(el('p', 'em-empty', 'Both boxes show ' + sa.name + '. Pick a different series in one of them to see a gap.')); return; }
+    const va = CR.v[a], vb = CR.v[b], all = [];
+    for (let i = 0; i < va.length; i++) if (va[i] !== null && vb[i] !== null) all.push({ d: crDates[i], a: va[i], b: vb[i] });
+    if (all.length < 2) { body.replaceChildren(el('p', 'em-empty', 'These two have no shared history to compare.')); return; }
+    const pts = since(all, state.gapRange), gaps = all.map((p) => ({ d: p.d, v: p.a - p.b })), sm = summary(since(gaps, state.gapRange)), last = all[all.length - 1], m1 = chgOver(gaps, 30);
 
-    const rh = el('h3', 'em-card-h', 'Gap over time'); rh.append(el('span', '', 'Dashed line: median since ' + fDay(sm.from)));
-    const gbox = el('div', 'em-chart'), boxes = [gbox], peers = () => boxes; gbox.style.minHeight = '230px';
-    right.append(rh, gbox);
-    later(() => lineChart(gbox, pts, { h: 230, color: C.c, unit: 'bp', dec: 0, name: `${rating(a)} minus ${rating(b)} gap`, tfmt: fDay, ref: sm.med, refLabel: '', gaps: false, peers, mr: 76 }));
-    [[a, sa, C.a], [b, sb, C.b]].forEach(([id, sx, color]) => {
-      const t = el('div', 'em-chart-title'), key = el('i'), box = el('div', 'em-chart'), leg = since(spreadPts(id), state.gapRange).filter((p) => p.d >= sm.from);
-      key.style.background = color; t.append(key, sx.name + ' spread', el('span', '', 'basis points')); box.style.minHeight = '120px'; boxes.push(box); right.append(t, box);
-      later(() => lineChart(box, leg, { h: 120, color, unit: 'bp', dec: 0, name: sx.name + ' spread', tfmt: fDay, gaps: false, peers, mr: 76 }));
-    });
-    body.replaceChildren(left, right);
-    note.textContent = `ICE BofA option-adjusted spreads, read from FRED. Daily readings from ${fDay(all[0].d)} to ${fDay(all[all.length - 1].d)}. The three charts share one pointer: point at or tap any of them to read the same day on all three.`;
+    const figs = el('div', 'em-stats em-figs');
+    const fig = (label, color, value, area, extra) => {
+      const d = el('div'), l = el('div', 'em-stat-l'), k = el('i', 'em-key' + (area ? ' area' : '')); k.style.background = color; l.append(k, label);
+      d.append(l, el('div', 'em-stat-v', value)); if (extra) d.append(extra); return d;
+    };
+    const chg = el('div', 'em-delta ' + adverse(m1)); chg.append(m1 === null ? 'n/a' : arrow(m1) + fmt(m1, 'bp', 0, true) + ' ', el('small', '', 'in 1 month'));
+    figs.append(fig(sa.name, C.a, bp(last.a) + ' bp'), fig(sb.name, C.b, bp(last.b) + ' bp'), fig('Gap', C.c, bp(last.a - last.b) + ' bp', true, chg));
+    const box = el('div', 'em-chart'); box.style.minHeight = '260px';
+    const where = `${state.gapRange >= 99 ? 'Since ' + fDay(sm.from) : 'Over ' + crLabel(state.gapRange)}, the gap ranged from ${bp(sm.lo)} to ${bp(sm.hi)} bp, with a median of ${bp(sm.med)}. On ${fDay(last.d)} it was ${bp(sm.last)} bp, wider than on ${sm.rank}% of days.`;
+    const cap = el('p', 'em-cap', where);
+    const note = el('p', 'em-note', (state.gapSwap ? 'Swapped so the wider spread comes first. ' : '') + 'ICE BofA option-adjusted spreads, read from FRED.');
+    state.gapSwap = false;
+    body.replaceChildren(figs, box, cap, note);
+    later(() => pairChart(box, pts, { a: { name: sa.name, color: C.a }, b: { name: sb.name, color: C.b } }));
   }
 
   function indicators() {
@@ -1171,7 +1313,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     ranges();
     $('in-tiles').replaceChildren(...rows('indicators').filter((r) => state.theme === 'all' || r.theme === state.theme).map((r) => {
       const t = btn('em-tile', null, () => open('ind', r.id)), sp = el('span', 'em-chart em-spark');
-      t.append(el('span', 'em-tile-name', r.name), el('span', 'em-tile-val', fmt(num(r.latest), r.unit, +r.dec)), delta(r), el('span', 'em-tile-meta', r.period + ' · ' + r.sa), sp);
+      const meta = el('span', 'em-tile-meta', r.period + ' · ' + r.sa), sk = skipped(r);
+      if (sk) { const b = el('span', 'em-badge', 'No ' + d3.utcFormat('%b')(sk.blocked)); b.title = skipText(sk); meta.append(' ', b); }
+      t.append(el('span', 'em-tile-name', r.name), el('span', 'em-tile-val', fmt(num(r.latest), r.unit, +r.dec)), delta(r), meta, sp);
       sparkOf(sp, clip(series(r.id), state.range), C.a, r.name);
       return t;
     }));
@@ -1193,6 +1337,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       card.append(el('h3', '', l.title), el('p', '', l.question), pair, el('span', 'em-more', 'Charts and mechanism →'));
       return card;
     }));
+    $('cx-jump').hidden = !CR; $('cx-jump').onclick = () => $('cx-gap').scrollIntoView({ behavior: 'smooth', block: 'start' });
     gapTool();
   }
 
@@ -1202,15 +1347,23 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const opts = [['econ', 'Economic indicators']]; if (M) opts.push(['stocks', 'Index companies'], ['sectors', 'Sectors'], ['credit', 'Credit spreads']); if (K) opts.push(['crypto', 'Crypto']);
     seg($('dt-which'), opts, state.table, (v) => { state.table = v; state.q = ''; state.sector = 'all'; table(); });
     const tools = $('dt-tools'), tb = $('dt-table'), note = $('dt-note');
-    tools.replaceChildren(); note.textContent = '';
+    tools.replaceChildren(); note.textContent = ''; tableMore(tb, false, null);
     const head = (cols) => { const tr = el('tr'); cols.forEach(([label, cls, key]) => { const th = el('th', cls || ''); if (key) { th.append(btn('', label + (state.sort === key ? (state.dir < 0 ? ' ↓' : ' ↑') : ''), () => { state.dir = state.sort === key ? -state.dir : (key === 't' || key === 'n' ? 1 : -1); state.sort = key; table(); })); th.setAttribute('aria-sort', state.sort === key ? (state.dir < 0 ? 'descending' : 'ascending') : 'none'); } else th.textContent = label; tr.append(th); }); const h = el('thead'); h.append(tr); return h; };
     const td = (t, c) => el('td', c || '', t), body = el('tbody');
     const click = (tr, fn) => { tr.tabIndex = 0; tr.onclick = fn; tr.onkeydown = (e) => { if (e.key === 'Enter') fn(); }; };
+    // Expand all and collapse all, for a table whose rows sit under group headers.
+    const allBtns = (ids, open) => {
+      const n = ids.filter((i) => open[i]).length;
+      [['Expand all', true], ['Collapse all', false]].forEach(([label, v]) => tools.append(btn('em-chip', label, () => { ids.forEach((i) => { open[i] = v; }); table(); })));
+      const c = el('span', 'em-count', n + ' of ' + ids.length + ' groups open'); tools.append(c);
+    };
     if (state.table === 'econ') {
-      THEMES.forEach(([id, name]) => {
-        const rs = rows('indicators').filter((r) => r.theme === id); if (!rs.length) return;
-        const g = el('tr', 'em-group'), gd = el('td', '', name); gd.colSpan = 8; g.append(gd); body.append(g);
-        rs.forEach((r) => {
+      const themes = THEMES.filter(([id]) => rows('indicators').some((r) => r.theme === id)), open = state.econOpen;
+      allBtns(themes.map((t) => t[0]), open);
+      themes.forEach(([id, name]) => {
+        const rs = rows('indicators').filter((r) => r.theme === id);
+        body.append(groupRow(name, rs.length + (rs.length === 1 ? ' indicator' : ' indicators'), 8, !!open[id], () => { open[id] = !open[id]; table(); }));
+        if (open[id]) rs.forEach((r) => {
           const tr = el('tr'), dec = +r.dec, chg = num(r.change);
           tr.append(td(r.name), td(r.period), td(fmt(num(r.latest), r.unit, dec), 'num'), td(fmt(num(r.prior), r.unit, dec), 'num'), td(fmt(chg, chgUnit(r.unit), dec, true), 'num' + goodClass(r, chg)),
             td(num(r.year_ago) === null ? 'n/a' : fmt(num(r.year_ago), r.unit, dec), 'num'), td(r.sa), td(r.source, 'wrap'));
@@ -1218,7 +1371,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         });
       });
       tb.replaceChildren(head([['Indicator'], ['Period'], ['Latest', 'num'], ['Prior', 'num'], ['Change', 'num'], ['Year ago', 'num'], ['Adj.'], ['Source']]), body);
-      note.textContent = 'SA is seasonally adjusted, NSA is not, SAAR is seasonally adjusted at an annual rate. Select a row for its chart.';
+      note.textContent = 'Select a theme to open it. SA is seasonally adjusted, NSA is not, SAAR is seasonally adjusted at an annual rate. Select a row for its chart.';
     } else if (state.table === 'stocks') {
       const ix = index();
       const pick = el('select', 'em-select'); pick.setAttribute('aria-label', 'Index'); M.indices.forEach((x) => { const o = el('option', '', x.set); o.value = x.id; o.selected = x.id === state.index; pick.append(o); });
@@ -1247,9 +1400,12 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       fill();
       note.textContent = `Closing prices for ${fDay(utc(M.asof))}. Weights as of ${M.holdings_asof}. Select a column heading to sort, or a row for the company.`;
     } else if (state.table === 'sectors') {
+      if (!state.secOpen) state.secOpen = { [M.indices[0].id]: true };
+      const open = state.secOpen;
+      allBtns(M.indices.map((ix) => ix.id), open);
       M.indices.forEach((ix) => {
-        const g = el('tr', 'em-group'), gd = el('td', '', ix.set); gd.colSpan = 9; g.append(gd); body.append(g);
-        ix.sectors.forEach((s) => { const tr = el('tr'); tr.append(td(M.sectors[s.s]), td(String(s.n), 'num'), td(d3.format('.2f')(s.w) + '%', 'num'), ...PERIODS.map(([k]) => td(pct(s[k], 1), 'num ' + dir(s[k])))); click(tr, () => open('sector', ix.id + ':' + s.s)); body.append(tr); });
+        body.append(groupRow(ix.set, ix.sectors.length + ' sectors', 9, !!open[ix.id], () => { open[ix.id] = !open[ix.id]; table(); }));
+        if (open[ix.id]) ix.sectors.forEach((s) => { const tr = el('tr'); tr.append(td(M.sectors[s.s]), td(String(s.n), 'num'), td(d3.format('.2f')(s.w) + '%', 'num'), ...PERIODS.map(([k]) => td(pct(s[k], 1), 'num ' + dir(s[k])))); click(tr, () => open('sector', ix.id + ':' + s.s)); body.append(tr); });
       });
       tb.replaceChildren(head([['GICS sector'], ['Companies', 'num'], ['Weight', 'num'], ...PERIODS.map(([, l]) => [l, 'num'])]), body);
       note.textContent = 'Sector returns use today\'s members, so periods of a year run higher than the index. Select a row for its companies.';
@@ -1299,6 +1455,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const r = ind.get(id), dec = +r.dec;
       title(themeName(r.theme) + ' · ' + r.period + ' ', r.name).append(el('span', 'em-badge', r.sa));
       const big = el('div', 'em-big', fmt(num(r.latest), r.unit, dec)); body.append(big, delta(r));
+      const sk = skipped(r); if (sk) body.append(el('p', 'em-flag', skipText(sk)));
       const stats = el('div', 'em-stats');
       stat(stats, 'Prior', fmt(num(r.prior), r.unit, dec));
       stat(stats, 'Year ago', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec));
