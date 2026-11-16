@@ -22,10 +22,12 @@ import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from xml.etree import ElementTree as ET
+from zoneinfo import ZoneInfo
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "markets-data.js")
 SETTLE = 15 * 60  # seconds after the closing bell before a session counts as finished
+EASTERN = ZoneInfo("America/New_York")
 
 INDICES = [
     # id, Yahoo symbol, name, holdings key, label for the constituent set
@@ -155,7 +157,11 @@ def yahoo(symbol, rng):
     # While a session is still trading, Yahoo's last daily bar holds the price so far, not a close.
     # It is left out, so every figure the page calls a close comes from a finished session.
     reg = (r["meta"].get("currentTradingPeriod") or {}).get("regular") or {}
-    open_from = reg["start"] if reg.get("start") and time.time() < reg.get("end", 0) + SETTLE else None
+    start, end = reg.get("start"), reg.get("end")
+    if not (start and end):  # no session times in the reply: assume today's regular session, 9:30 am to 4:00 pm Eastern
+        day = dt.datetime.fromtimestamp(time.time(), EASTERN).replace(second=0, microsecond=0)
+        start, end = day.replace(hour=9, minute=30).timestamp(), day.replace(hour=16, minute=0).timestamp()
+    open_from = start if time.time() < end + SETTLE else None
     pts = []
     for t, c in zip(r["timestamp"], closes):
         if c is not None and not (open_from and t >= open_from):

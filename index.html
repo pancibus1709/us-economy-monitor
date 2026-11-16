@@ -65,7 +65,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-seg { display: inline-flex; background: var(--line-2); border-radius: 8px; padding: 3px; gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .em-seg button { background: none; border: 0; border-radius: 6px; padding: 5px 11px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .em-seg button:hover { color: var(--ink); }
-@media (pointer: coarse) { .em-seg button { padding: 10px 13px; } .em button.em-toggle { padding-block: 12px; } }
+@media (pointer: coarse) { .em-seg button { padding: 10px 13px; min-height: 40px; } .em button.em-toggle { padding-block: 12px; } .em button.em-chip { padding-block: 10px; } .em-table th button { min-height: 40px; } }
 .em-seg button[aria-pressed="true"] { background: var(--panel); color: var(--cobalt); box-shadow: 0 1px 2px rgba(20, 22, 31, .14); }
 .em-seglabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-3); margin-right: 8px; }
 .em-ctl { display: flex; align-items: center; } .em-ctl[hidden] { display: none; }
@@ -507,11 +507,11 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
             <tr><td>Industrial production</td><td><a href="https://www.federalreserve.gov/releases/g17/current/" target="_blank" rel="noopener">Federal Reserve Board</a></td><td>After the 9:15 am release</td></tr>
             <tr><td>Housing starts, building permits, retail sales and business applications</td><td><a href="https://www.census.gov/" target="_blank" rel="noopener">Census Bureau</a></td><td>After the 8:30 and 10 am releases</td></tr>
             <tr><td>Mortgage rates</td><td><a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac</a></td><td>Thursdays, after noon</td></tr>
-            <tr><td>Treasury yields</td><td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates" target="_blank" rel="noopener">US Treasury</a></td><td>Weekday evenings, one business day behind</td></tr>
+            <tr><td>Treasury yields</td><td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates" target="_blank" rel="noopener">US Treasury</a></td><td>Weekdays, late afternoon, one business day behind</td></tr>
             <tr><td>Federal funds rate</td><td><a href="https://www.newyorkfed.org/markets/reference-rates/effr" target="_blank" rel="noopener">Federal Reserve Bank of New York</a></td><td>Weekday mornings, one business day behind</td></tr>
             <tr><td>Federal deficit</td><td><a href="https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/" target="_blank" rel="noopener">US Treasury, Monthly Treasury Statement</a></td><td>The afternoon it is published</td></tr>
             <tr class="em-group"><td colspan="3">Economy, read directly</td></tr>
-            <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Weekday evenings</td></tr>
+            <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Weekdays, late afternoon</td></tr>
             <tr><td>Consumer sentiment</td><td><a href="https://www.sca.isr.umich.edu/" target="_blank" rel="noopener">University of Michigan</a></td><td>After the 10 am release</td></tr>
             <tr><td>Business AI adoption</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a></td><td>By hand</td></tr>
             <tr class="em-group"><td colspan="3">Markets</td></tr>

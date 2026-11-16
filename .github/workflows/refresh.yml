@@ -31,7 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Always the live branch, whichever branch "Run workflow" was started from.
       - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
 
       - name: Skip the hours outside 6:47 am to 10:47 pm Eastern
         id: hours
@@ -44,6 +47,7 @@ jobs:
           fi
 
       - name: Refresh and check the data files
+        id: refresh
         if: steps.hours.outputs.run == 'yes'
         env:
           STEPS: ${{ github.event.inputs.steps }}
@@ -62,3 +66,10 @@ jobs:
           git commit -q -m "Refresh data $(TZ=America/New_York date '+%Y-%m-%d %H:%M ET')"
           # Never force-push. If the branch moved while this ran, replay the one commit on top and try once more.
           git push origin HEAD:gh-pages || { git pull --rebase origin gh-pages && git push origin HEAD:gh-pages; }
+
+      # Good files are published above. A step that failed still turns the run red, so it cannot go unnoticed.
+      - name: Fail the run if a refresh step failed
+        if: steps.refresh.outputs.failed == '1'
+        run: |
+          echo "A refresh step failed. See the summary of this run. The published copy of that file was kept."
+          exit 1
