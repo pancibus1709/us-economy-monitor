@@ -6,13 +6,14 @@ name: Refresh data
 
 on:
   schedule:
-    # 47 minutes past each hour from 6:47 am to 10:47 pm Eastern, in both winter and summer time.
-    # GitHub reads this in UTC; scripts/refresh.py works out the Eastern hour and what is due.
-    - cron: '47 10-23,0-4 * * *'
+    # Twice an hour from about 6:45 am to 10:45 pm Eastern, in both winter and summer time.
+    # GitHub reads this in UTC, starts scheduled jobs late and sometimes skips them. Two start times an hour
+    # give it two chances. scripts/refresh.py refreshes only what is behind, so a second start usually does nothing.
+    - cron: '17,47 10-23,0-4 * * *'
   workflow_dispatch:
     inputs:
       steps:
-        description: 'Leave empty for the steps due now, or type: --all, or any of: news crypto economy markets'
+        description: 'Leave empty to refresh whatever is behind, or type: --all, or any of: news crypto economy markets'
         required: false
         default: ''
   push:

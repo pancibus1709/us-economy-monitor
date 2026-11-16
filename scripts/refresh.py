@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run the refreshes that are due, check each data file, and keep only files that pass. Standard library only.
 
-  python3 scripts/refresh.py            the steps due at this hour (see SCHEDULE.md)
+  python3 scripts/refresh.py            the steps whose data is behind (see SCHEDULE.md)
   python3 scripts/refresh.py --all      every step, whatever the hour
   python3 scripts/refresh.py news crypto economy markets     named steps only
 
@@ -28,12 +28,16 @@ FILES = {"news": ("news-data.js", "const NEWS = "), "crypto": ("crypto-data.js",
 RETRY_AFTER = {"news": 0, "crypto": 60, "economy": 0, "markets": 120}  # seconds before one retry; 0 is no retry
 TIMEOUT = 240  # seconds allowed for one attempt of one script
 
-# Runs are scheduled at 47 minutes past the hour and can start late. A run belongs to the hour it was
-# scheduled for, so one that starts up to 52 minutes late still does that hour's work.
-ECONOMY_SLOTS = {8, 9, 10, 12, 16, 17}  # after the 8:30, 9:15, 10:00, noon, 2:00, 3:00 and 4:15 pm publications
-SPREAD_SLOTS = {12, 13}                 # FRED posts the previous day's credit spreads around midday
-CLOSE_SLOTS = {16, 17, 18, 19}          # after the 4 pm close: tried until that day's close is in
-CONFIRM_SLOT = 18                       # one more pass, to pick up index levels corrected after the first one
+# What is due is decided from what is already published, never from the hour alone. GitHub starts
+# scheduled jobs late and sometimes not at all, so any run that does start must be able to catch up.
+FRESH = 50 * 60  # headlines and crypto are refreshed when the published copy is older than this, in seconds
+# Economic data is checked once after each of these Eastern times, shortly after the agencies publish:
+# 8:30 am releases, 9:00 and 9:15 am, 10:00 am, noon, and the 2:00 to 4:15 pm Treasury and Fed postings (twice).
+ECONOMY_WEEKDAY = [(8, 40), (9, 25), (10, 10), (12, 10), (16, 25), (17, 25)]
+ECONOMY_WEEKEND = [(8, 40)]
+SPREADS_FROM = (12, 10)        # FRED posts the previous day's credit spreads around midday
+CLOSE_FROM = (16, 31)          # the 4:00 pm close, plus time for the VIX session (ends 4:15) to settle
+CONFIRM = ((18, 15), (19, 15))  # one more pass in this window, for index levels corrected after the close
 
 
 class NothingNew(Exception):
@@ -80,40 +84,73 @@ def last_session():
         return None
 
 
-def due(now, probe=last_session):
-    """The steps to run for the hour this run was scheduled in."""
-    slot_time = now - dt.timedelta(minutes=40)
-    slot, weekday, today = slot_time.hour, slot_time.weekday() < 5, slot_time.date().isoformat()
-    steps = ["news", "crypto"]
-
-    # Economy. The age is taken from the newest check: an indicator held at its last good reading keeps
-    # an old time on purpose (the page flags it), and must not make every run a refresh.
+def last_spread():
+    """Date of the newest high yield spread on FRED, from one small request. None if it cannot be read."""
     try:
-        stamps = [r["retrieved"] for r in read("economy")["indicators"] if r.get("retrieved") and not r.get("static")]
-        age = (now - dt.datetime.fromisoformat(max(stamps).replace("Z", "+00:00"))).total_seconds() / 3600
+        sys.path.insert(0, os.path.join(ROOT, "scripts"))
+        import refresh_markets
+        return refresh_markets.fred("BAMLH0A0HYM2")[-1][0]
+    except Exception as e:  # noqa: BLE001
+        print(f"  could not read the newest spread date ({e!r})")
+        return None
+
+
+def stamp_of(text):
+    return dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
+
+
+def last_checkpoint(now):
+    """The most recent time, at or before now, after which the economic data should have been checked."""
+    for back in range(0, 5):
+        day = (now - dt.timedelta(days=back)).date()
+        marks = ECONOMY_WEEKDAY if day.weekday() < 5 else ECONOMY_WEEKEND
+        for h, m in reversed(marks):
+            mark = dt.datetime(day.year, day.month, day.day, h, m, tzinfo=ET)
+            if mark <= now:
+                return mark
+    return now - dt.timedelta(days=5)
+
+
+def due(now, session=last_session, spread=last_spread):
+    """The steps whose published data is behind what should be available by now."""
+    steps = []
+    at = lambda hm: now.replace(hour=hm[0], minute=hm[1], second=0, microsecond=0)
+    weekday, today = now.weekday() < 5, now.date().isoformat()
+
+    for name in ("news", "crypto"):
+        try:
+            fresh = (now - stamp_of(read(name)["built"])).total_seconds() < FRESH
+        except Exception:  # noqa: BLE001
+            fresh = False
+        if not fresh:
+            steps.append(name)
+
+    # Economy. The time of the newest check is used: an indicator held at its last good reading keeps an
+    # old time on purpose (the page flags it), and must not make every run a refresh.
+    try:
+        checked = stamp_of(max(r["retrieved"] for r in read("economy")["indicators"] if r.get("retrieved") and not r.get("static")))
     except Exception:  # noqa: BLE001
-        age = 999
-    scheduled = (weekday and slot in ECONOMY_SLOTS) or (not weekday and slot == 8)
-    missed = weekday and (slot - 1) in ECONOMY_SLOTS and age > 1.5  # the hour before was skipped or failed
-    if scheduled or missed or age > 26:
+        checked = None
+    if checked is None or checked < last_checkpoint(now):
         steps.append("economy")
 
-    # Markets. Driven by what is already published, so it runs until the day's data is in and then stops.
+    # Markets. Each test costs one small request, and a full rebuild starts only when a source has something new.
     try:
         mk = read("markets")
-        close, spreads = mk["asof"], mk["spreads"][0]["asof"]
+        close, spreads, built = mk["asof"], mk["spreads"][0]["asof"], stamp_of(mk["built"])
     except Exception:  # noqa: BLE001
-        close = spreads = ""
-    session_before = prev_weekday(slot_time.date()).isoformat()
+        close, spreads, built = "", "", None
     need = False
-    if weekday and slot in SPREAD_SLOTS and spreads < session_before:
-        need = True
-    elif (weekday and slot in CLOSE_SLOTS) or (slot_time.weekday() == 5 and slot == 8):
-        finished = probe()  # on a market holiday this equals the published close, and nothing is rebuilt
-        if finished is None:
-            need = close < (today if weekday else session_before)
-        else:
-            need = finished > close or (slot == CONFIRM_SLOT and finished == today)
+    finished = session()  # on a market holiday this stays at the published close, and nothing is rebuilt
+    if finished is None:
+        need = weekday and now >= at(CLOSE_FROM) and close < today
+    elif finished > close:
+        need = finished < today or now >= at(CLOSE_FROM)  # an older session at once; today's after the settle time
+    elif finished == close == today and at(CONFIRM[0]) <= now < at(CONFIRM[1]):
+        need = built is None or built < at(CONFIRM[0])
+    if not need and (not weekday or now >= at(SPREADS_FROM)) and spreads < prev_weekday(now.date()).isoformat():
+        newest = spread()
+        need = newest is not None and newest > spreads
     if need:
         steps.append("markets")
     return steps
@@ -212,7 +249,7 @@ def main():
         sys.exit(f"Unknown step {unknown}. Use --all or any of: {' '.join(FILES)}")
     now = dt.datetime.now(ET)
     steps = list(FILES) if "--all" in args else args or due(now)
-    print(f"{now:%a %b %-d, %-I:%M %p} Eastern. Steps: {', '.join(steps)}")
+    print(f"{now:%a %b %-d, %-I:%M %p} Eastern. Steps: {', '.join(steps) or 'nothing is due'}")
     results = {}
     for name in steps:
         print(f"  {name}")
