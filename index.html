@@ -710,7 +710,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   }
   function skipText(sk) {
     const lapse = sk.missing.getUTCFullYear() === 2025 && sk.missing.getUTCMonth() === 9 ? ' during the 2025 government shutdown' : '';
-    return `There is no ${fLong(sk.blocked)} reading: ${fLong(sk.missing)} was never collected${lapse}, so there is no year-ago figure to compare it with. The next reading shown will be ${fLong(sk.next)}.`;
+    return `This is a change from a year earlier. The ${fLong(sk.blocked)} price data exists, but the ${fLong(sk.missing)} data it would be compared with was never collected${lapse}. So a 12-month change for ${fLong(sk.blocked)} cannot be calculated, and the latest one available is shown. ${fLong(sk.next)} will appear when it is released.`;
   }
   const later = (fn) => requestAnimationFrame(fn);
 
@@ -1314,7 +1314,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     $('in-tiles').replaceChildren(...rows('indicators').filter((r) => state.theme === 'all' || r.theme === state.theme).map((r) => {
       const t = btn('em-tile', null, () => open('ind', r.id)), sp = el('span', 'em-chart em-spark');
       const meta = el('span', 'em-tile-meta', r.period + ' · ' + r.sa), sk = skipped(r);
-      if (sk) { const b = el('span', 'em-badge', 'No ' + d3.utcFormat('%b')(sk.blocked)); b.title = skipText(sk); meta.append(' ', b); }
+      if (sk) { const b = el('span', 'em-badge', 'Latest possible'); b.title = skipText(sk); meta.append(' ', b); }
       t.append(el('span', 'em-tile-name', r.name), el('span', 'em-tile-val', fmt(num(r.latest), r.unit, +r.dec)), delta(r), meta, sp);
       sparkOf(sp, clip(series(r.id), state.range), C.a, r.name);
       return t;
