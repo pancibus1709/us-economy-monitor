@@ -4,7 +4,7 @@
   python3 scripts/refresh_markets.py
 
 Sources
-  Index levels and share prices   Yahoo Finance chart endpoint (daily closes)
+  Index levels and share prices   Yahoo Finance chart endpoint (daily closes of finished sessions only)
   Index membership and weights    Daily holdings of SPY and DIA (State Street) and QQQ (Invesco)
   GICS sector and sub-industry    Wikipedia's S&P 500 constituent table; GICS_EXTRA below for the rest
   VIX and MOVE                    Yahoo Finance chart endpoint (daily closes)
@@ -25,6 +25,7 @@ from xml.etree import ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "markets-data.js")
+SETTLE = 15 * 60  # seconds after the closing bell before a session counts as finished
 
 INDICES = [
     # id, Yahoo symbol, name, holdings key, label for the constituent set
@@ -151,9 +152,13 @@ def yahoo(symbol, rng):
     d = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{s}?range={rng}&interval=1d"))
     r = d["chart"]["result"][0]
     closes = r["indicators"]["quote"][0]["close"]
+    # While a session is still trading, Yahoo's last daily bar holds the price so far, not a close.
+    # It is left out, so every figure the page calls a close comes from a finished session.
+    reg = (r["meta"].get("currentTradingPeriod") or {}).get("regular") or {}
+    open_from = reg["start"] if reg.get("start") and time.time() < reg.get("end", 0) + SETTLE else None
     pts = []
     for t, c in zip(r["timestamp"], closes):
-        if c is not None:
+        if c is not None and not (open_from and t >= open_from):
             pts.append(((dt.datetime(1970, 1, 1) + dt.timedelta(seconds=t + r["meta"].get("gmtoffset", 0))).date(), float(c)))
     return pts
 

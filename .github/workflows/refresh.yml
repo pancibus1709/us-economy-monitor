@@ -1,0 +1,64 @@
+name: Refresh data
+
+# Runs the refresh scripts on GitHub's servers and publishes the data files to the live site.
+# No AI model is involved: the scripts fetch, check and write the data themselves.
+# The timetable and the reasons for it are in scripts/SCHEDULE.md.
+
+on:
+  schedule:
+    # 47 minutes past each hour from 6:47 am to 10:47 pm Eastern, in both winter and summer time.
+    # GitHub reads this in UTC; scripts/refresh.py works out the Eastern hour and what is due.
+    - cron: '47 10-23,0-4 * * *'
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: 'Leave empty for the steps due now, or type: --all, or any of: news crypto economy markets'
+        required: false
+        default: ''
+  push:
+    branches: [gh-pages]
+    paths: ['.github/workflows/refresh.yml', 'scripts/**']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip the hours outside 6:47 am to 10:47 pm Eastern
+        id: hours
+        run: |
+          slot=$(TZ=America/New_York date -d '40 minutes ago' +%-H)
+          if [ "${{ github.event_name }}" = "schedule" ] && { [ "$slot" -lt 6 ] || [ "$slot" -gt 22 ]; }; then
+            echo "run=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Refresh and check the data files
+        if: steps.hours.outputs.run == 'yes'
+        env:
+          STEPS: ${{ github.event.inputs.steps }}
+        run: python3 scripts/refresh.py $STEPS
+
+      - name: Publish what changed
+        if: steps.hours.outputs.run == 'yes'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news-data.js crypto-data.js economy-data.js markets-data.js
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git commit -q -m "Refresh data $(TZ=America/New_York date '+%Y-%m-%d %H:%M ET')"
+          # Never force-push. If the branch moved while this ran, replay the one commit on top and try once more.
+          git push origin HEAD:gh-pages || { git pull --rebase origin gh-pages && git push origin HEAD:gh-pages; }

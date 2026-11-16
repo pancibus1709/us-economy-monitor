@@ -223,6 +223,8 @@ def main():
     with open(OUT) as f:
         data = json.loads(f.read().split("=", 1)[1].rstrip().rstrip(";"))
     now = dt.datetime.now(dt.timezone.utc)
+    for s in data.get("summary", []):
+        s.pop("text", None)  # written once by hand and never refreshed; the page builds these cards from the indicators
 
     codes = sorted({c for _, c in FRED.values()} | set(EXTRA))
     jobs = {c: (lambda c=c: fred(c)) for c in codes}
@@ -321,7 +323,7 @@ def main():
     fmt = lambda r, x, signed=False: (f"{x:+,.{int(r['dec'])}f}" if signed else f"{x:,.{int(r['dec'])}f}") + {"%": "%", "pts": " pts", "K": "K", "M": "M"}.get(r["unit"], "")
     chg = lambda r, x: f"{abs(x):,.{int(r['dec'])}f}" + {"%": " pts", "pts": " pts", "K": "K", "M": "M"}.get(r["unit"], "")
     def reading(r):
-        t = f"{r['name']} is {fmt(r, r['latest'])} ({r['period']})"
+        t = f"{r['name']}: {fmt(r, r['latest'])} ({r['period']})"
         if r.get("change_1y") is not None:
             t += f", {'up' if r['change_1y'] >= 0 else 'down'} {chg(r, r['change_1y'])} from a year earlier"
         return t + "."
