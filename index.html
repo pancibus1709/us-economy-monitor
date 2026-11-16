@@ -730,6 +730,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const pad = (hi - lo || 1) * 0.08; lo -= pad; hi += pad;
     const endTxt = yFmt(pts[pts.length - 1].v);
     const m = spark ? { t: 3, r: 5, b: 3, l: 1 } : { t: 10, r: o.mr || Math.max(46, endTxt.length * 7.6 + 14), b: 22, l: 46 };
+    if (o.ml && !spark) m.l = o.ml;
     const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.d)).range([m.l, W - m.r]);
     const y = d3.scaleLinear().domain([lo, hi]).range([H - m.b, m.t]);
     const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
@@ -740,7 +741,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const ticks = y.ticks(4);
       svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid);
       svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => fmt(d, o.unit === 'bp' ? '' : o.unit, o.tickDec !== undefined ? o.tickDec : Math.min(o.dec, 1)));
-      const span = x.domain()[1] - x.domain()[0], xt = x.ticks(Math.max(2, Math.floor(W / 110)));
+      const span = x.domain()[1] - x.domain()[0], long = span > 2.2 * 365 * 864e5, fit = Math.max(2, Math.floor(W / 110));
+      // Year labels sit on January 1, one per year, thinned when the chart is narrow.
+      const xt = long ? x.ticks(d3.utcYear.every(Math.max(1, Math.ceil(span / (365.25 * 864e5) / fit)))) : x.ticks(fit);
       svg.append('g').selectAll('text').data(xt).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle').text(d3.utcFormat(span > 2.2 * 365 * 864e5 ? '%Y' : "%b '%y"));
       if (lo < 0 && hi > 0) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', C.ink).attr('opacity', 0.45);
       if (o.ref !== undefined) {
@@ -1229,7 +1232,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     if (pts.length < 2) { box.append(el('p', 'em-empty', 'There is not enough shared history to chart these two.')); return; }
     const W = box.clientWidth || 300, H = o.h || (W < 520 ? 260 : 300), bp = (v) => d3.format(',')(Math.round(v));
     const last = pts[pts.length - 1], endA = bp(last.a), endB = bp(last.b);
-    const m = { t: 12, r: Math.max(44, Math.max(endA.length, endB.length) * 7.6 + 18), b: 22, l: 44 };
+    const m = { t: 12, r: o.mr || Math.max(44, Math.max(endA.length, endB.length) * 7.6 + 18), b: 22, l: o.ml || 44 };
     const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.d)).range([m.l, W - m.r]);
     const hi = d3.max(pts, (p) => Math.max(p.a, p.b)), lo = d3.min(pts, (p) => Math.min(p.a, p.b));
     const y = d3.scaleLinear().domain([Math.min(0, lo), hi * 1.06]).nice().range([H - m.b, m.t]);
@@ -1304,8 +1307,17 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const cap = el('p', 'em-cap', where);
     const note = el('p', 'em-note', (state.gapSwap ? 'Swapped so the wider spread comes first. ' : '') + 'ICE BofA option-adjusted spreads, read from FRED.');
     state.gapSwap = false;
-    body.replaceChildren(figs, box, cap, note);
-    later(() => pairChart(box, pts, { a: { name: sa.name, color: C.a }, b: { name: sb.name, color: C.b } }));
+    // The gap on its own scale, so its moves are not flattened by the size of the wider spread.
+    const gp = since(gaps, state.gapRange), gbox = el('div', 'em-chart'), t1 = el('div', 'em-chart-title'), t2 = el('div', 'em-chart-title'), k1 = el('i'), k1b = el('i'), k2 = el('i');
+    k1.style.background = C.a; k1b.style.background = C.b; k2.style.background = C.c; gbox.style.minHeight = '200px'; t1.style.marginTop = '4px'; t2.style.marginTop = '22px';
+    t1.append(k1, k1b, 'The two spreads', el('span', '', 'basis points, the shaded space is the gap'));
+    t2.append(k2, `The gap: ${rating(a)} minus ${rating(b)}`, el('span', '', `basis points, dashed line is the median (${bp(sm.med)})`));
+    const mr = Math.max(...[last.a, last.b, last.a - last.b].map((v) => (bp(v) + ' bp').length)) * 7.6 + 18;
+    body.replaceChildren(figs, t1, box, t2, gbox, cap, note);
+    later(() => {
+      pairChart(box, pts, { a: { name: sa.name, color: C.a }, b: { name: sb.name, color: C.b }, mr, ml: 46 });
+      lineChart(gbox, gp, { h: 200, color: C.c, unit: 'bp', dec: 0, name: `${rating(a)} minus ${rating(b)} gap`, tfmt: fDay, ref: sm.med, refLabel: '', gaps: false, mr, ml: 46 });
+    });
   }
 
   function indicators() {
