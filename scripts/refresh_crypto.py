@@ -143,8 +143,10 @@ def main():
             "btc": round(glob["market_cap_percentage"]["btc"], 1), "eth": round(glob["market_cap_percentage"]["eth"], 1),
         },
     }
-    with open(OUT, "w") as f:
-        f.write("const CRYPTO = " + json.dumps(data, separators=(",", ":")) + ";\n")
+    text = "const CRYPTO = " + json.dumps(data, separators=(",", ":")) + ";\n"
+    with open(OUT + ".tmp", "w") as f:  # written beside the live file, then swapped in whole
+        f.write(text)
+    os.replace(OUT + ".tmp", OUT)
     print(f"wrote {OUT}: {len(coins)} tokens, Bitcoin ${coins[0]['p']:,.0f}, {os.path.getsize(OUT) // 1024} KB")
 
 

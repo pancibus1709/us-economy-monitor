@@ -130,8 +130,10 @@ def main():
     if len(items) < 8:
         sys.exit(f"Only {len(items)} headlines found; news-data.js left unchanged.")
     data = {"built": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "items": items}
-    with open(OUT, "w") as f:
-        f.write("const NEWS = " + json.dumps(data, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/") + ";\n")
+    text = "const NEWS = " + json.dumps(data, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/") + ";\n"
+    with open(OUT + ".tmp", "w") as f:  # written beside the live file, then swapped in whole
+        f.write(text)
+    os.replace(OUT + ".tmp", OUT)
     counts = {c: sum(1 for i in items if i["c"] == c) for c in ORDER}
     print(f"wrote {OUT}: {len(items)} headlines {counts}")
 

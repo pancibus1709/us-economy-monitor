@@ -13,7 +13,7 @@
 const draws = {};
 function run(name) { document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => draws[name](el)); }
 window.dash = {
-  data: (id) => (DATA[id] ? {status: 'ok', data: DATA[id]} : {status: 'missing', data: []}),
+  data: (id) => (typeof DATA !== 'undefined' && DATA && DATA[id] ? {status: 'ok', data: DATA[id]} : {status: 'missing', data: []}),
   draw: (name, fn) => { if (fn) draws[name] = fn; else if (draws[name]) run(name); },
 };
 let t; const all = () => Object.keys(draws).forEach(run);
@@ -492,7 +492,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         <details class="em-method" open>
           <summary>Crypto</summary>
           <p>Prices, market value, trading volume, supply and the 24-hour, 7-day, 30-day and one-year changes come from CoinGecko, which averages prices across exchanges. The page asks CoinGecko for current figures when it opens and once a minute after that. If that request fails, it shows the last saved snapshot and says so.</p>
-          <p>Price history is the daily close at midnight UTC from Yahoo Finance: daily for the past 400 days and weekly before that. Year to date is measured from the December 31 close. The tab covers the largest tokens by market value. Dollar-pegged stablecoins, exchange-issued tokens and tokenised claims on other assets are left out.</p>
+          <p>Price history is the daily close at midnight UTC from Yahoo Finance: daily for the past 400 days and weekly before that. Year to date is measured from the December 31 close. The tab covers the largest tokens by market value. Dollar-pegged stablecoins and tokenised claims on other assets are left out.</p>
         </details>
         <details class="em-method" open>
           <summary>Headlines</summary>
@@ -554,7 +554,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const CR_RANGES = [[0.25, '3M'], [0.5, '6M'], [1, '1Y'], [99, 'All']];
   const GAP_PRESETS = [['ccc', 'aaa'], ['hy', 'ig'], ['bb', 'bbb'], ['ccc', 'b'], ['b', 'bb'], ['bbb', 'aaa']];
   const LADDER = ['aaa', 'aa', 'a', 'bbb', 'bb', 'b', 'ccc'];
-  const state = { tab: 'overview', theme: 'all', range: 10, volRange: 3, crRange: 99, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [],
+  const state = { tab: 'overview', theme: 'all', range: 99, volRange: 3, crRange: 99, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [],
     cyPeriod: 'h24', cyRange: 1, cySel: ['bitcoin', 'ethereum', 'solana'], gapA: 'ccc', gapB: 'aaa', gapRange: 99 };
 
   const $ = (id) => document.getElementById(id);
@@ -563,7 +563,14 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const num = (v) => (v === null || v === undefined || v === '' ? null : +v);
   const list = (v) => (Array.isArray(v) ? v : typeof v === 'string' && v ? JSON.parse(v) : []);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; };
-  const btn = (cls, text, fn) => { const b = el('button', cls, text); b.type = 'button'; if (fn) b.onclick = fn; return b; };
+  const FOCUSABLE = 'button, select, input, a[href], [tabindex="0"]';
+  // Controls are rebuilt when they are used. Put keyboard focus back where it was.
+  function holdFocus(fn) {
+    const a = document.activeElement, root = a && a.closest ? a.closest('.em-panel, .em-drawer') : null, i = root ? [...root.querySelectorAll(FOCUSABLE)].indexOf(a) : -1;
+    fn();
+    if (i >= 0 && !document.contains(a)) { const t = root.querySelectorAll(FOCUSABLE)[i]; if (t && !t.disabled) t.focus({ preventScroll: true }); }
+  }
+  const btn = (cls, text, fn) => { const b = el('button', cls, text); b.type = 'button'; if (fn) b.onclick = () => holdFocus(fn); return b; };
   const rows = (id) => (dash.data(id).status === 'ok' ? dash.data(id).data : []);
   const themeName = (id) => (THEMES.find((x) => x[0] === id) || [0, id])[1];
   const minus = (s) => s.replace('-', '−');
@@ -748,9 +755,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const lo = vals[0], hi = vals[vals.length - 1], med = d3.median(vals), w = hi - lo || 1;
     return { lo, hi, med, frac: (latest - lo) / w, medFrac: (med - lo) / w, rank: Math.round((100 * vals.filter((v) => v <= latest).length) / vals.length) };
   }
-  const ECON_RANGES = [[1, '1Y'], [3, '3Y'], [5, '5Y'], [10, 'Max']];
+  const ECON_RANGES = [[1, '1Y'], [3, '3Y'], [5, '5Y'], [99, 'Max']];
   const econFrom = () => { const d = dash.data('series'); return d.status === 'ok' && d.data.length ? d3.min(d.data, (r) => r.date).slice(0, 4) : '2017'; };
-  const yrs = (n) => (n === 1 ? 'over the past year' : n === 10 ? 'since ' + econFrom() : 'over the past ' + ({ 3: 'three', 5: 'five' }[n] || n) + ' years');
+  const yrs = (n) => (n === 1 ? 'over the past year' : n >= 99 ? 'since ' + econFrom() : 'over the past ' + ({ 3: 'three', 5: 'five' }[n] || n) + ' years');
   function delta(r, short) {
     const chg = num(r.change), d = el('span', 'em-delta' + goodClass(r, chg));
     d.append(arrow(chg) + fmt(chg, chgUnit(r.unit), +r.dec, true) + ' ', short ? '' : el('small', '', r.prior_label));
@@ -812,13 +819,14 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   function gapPts(a, b) { const x = CR.v[a], y = CR.v[b], out = []; for (let i = 0; i < x.length; i++) if (x[i] !== null && y[i] !== null) out.push({ d: crDates[i], v: x[i] - y[i] }); return out; }
   function since(pts, years) {
     if (!pts.length || years >= 99) return pts;
-    const from = new Date(pts[pts.length - 1].d); from.setUTCMonth(from.getUTCMonth() - Math.round(years * 12));
+    const end = pts[pts.length - 1].d, m = end.getUTCFullYear() * 12 + end.getUTCMonth() - Math.round(years * 12), y = Math.floor(m / 12), mo = m - y * 12;
+    const from = new Date(Date.UTC(y, mo, Math.min(end.getUTCDate(), new Date(Date.UTC(y, mo + 1, 0)).getUTCDate())));
     return pts.filter((p) => p.d >= from);
   }
   // Low, median, high and rank of the last point within the points given.
   function summary(pts) {
     const vals = pts.map((p) => p.v).sort(d3.ascending), last = pts[pts.length - 1].v, lo = vals[0], hi = vals[vals.length - 1], med = d3.median(vals), w = hi - lo || 1;
-    return { last, lo, hi, med, frac: (last - lo) / w, medFrac: (med - lo) / w, rank: Math.round((100 * vals.filter((v) => v <= last).length) / vals.length), from: pts[0].d, to: pts[pts.length - 1].d };
+    return { last, lo, hi, med, frac: (last - lo) / w, medFrac: (med - lo) / w, rank: Math.round((100 * vals.filter((v) => v < last).length) / vals.length), from: pts[0].d, to: pts[pts.length - 1].d };
   }
   // Change from the reading on or before `days` ago.
   function chgOver(pts, days) { const t = pts[pts.length - 1].d - days * 864e5; for (let i = pts.length - 2; i >= 0; i--) if (+pts[i].d <= t) return pts[pts.length - 1].v - pts[i].v; return null; }
@@ -833,7 +841,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 
   /* ---------- crypto helpers ---------- */
 
-  const cy = { at: K ? new Date(K.built) : null, live: false, tried: 0, busy: false };
+  const cy = { at: K ? new Date(K.built) : null, live: false, n: 0, tried: 0, busy: false };
+  const liveText = (t) => (cy.n < K.coins.length ? `Live prices for ${cy.n} of ${K.coins.length} tokens, ${t}` : `Live prices, ${t}`);
   const coin = (id) => K.coins.find((c) => c.id === id);
   const pdec = (v) => (v >= 1000 ? 0 : v >= 1 ? 2 : v >= 0.1 ? 4 : 5);
   const usd = (v) => (v === null || v === undefined ? 'n/a' : '$' + d3.format(',.' + pdec(v) + 'f')(v));
@@ -847,7 +856,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       c._h = c.w.map((v, i) => ({ d: new Date(d0 - (n - i) * 7 * 864e5), v })).concat(c.d.map((v, i) => ({ d: new Date(d0 + i * 864e5), v })));
     }
     const last = c._h[c._h.length - 1];
-    return cy.at > last.d ? c._h.concat([{ d: cy.at, v: c.p }]) : c._h;
+    return cy.at > last.d ? c._h.concat([{ d: cy.live && !c._live ? new Date(K.built) : cy.at, v: c.p }]) : c._h;
   }
   function cyDelta(c, k, withLabel) {
     const v = c[k], d = el('span', 'em-delta ' + dir(v));
@@ -881,13 +890,15 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
           [['h24', '24h'], ['d7', '7d'], ['d30', '30d'], ['y1', '1y']].forEach(([k, src]) => { const v = f(m, 'price_change_percentage_' + src + '_in_currency'); if (v !== null) c[k] = v; });
           if (c.ytd_base) c.ytd = Math.round((c.p / c.ytd_base - 1) * 1e4) / 100;
           c.hi = Math.max(c.hi, c.p); c.lo = Math.min(c.lo, c.p);
+          if (m.ath > 0) { c.ath = m.ath; c.ath_d = String(m.ath_date || c.ath_d || '').slice(0, 10); }
+          c._live = true;
         });
-        if (n) { cy.at = new Date(); cy.live = true; K.coins.sort((a, b) => (b.mc || 0) - (a.mc || 0)); } else cy.live = false;
+        cy.n = n; if (n) { cy.at = new Date(); cy.live = true; K.coins.sort((a, b) => (b.mc || 0) - (a.mc || 0)); } else cy.live = false;
       })
       .catch(() => { cy.live = false; })
       .finally(() => {
         clearTimeout(timer); cy.busy = false; stamp();
-        if (state.tab === 'crypto') crypto(true); else if (state.tab === 'overview') overviewCrypto();
+        holdFocus(() => { if (state.tab === 'crypto') crypto(true); else if (state.tab === 'overview') overviewCrypto(); });
       });
   }
 
@@ -948,7 +959,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const k = state.cyPeriod, pl = CY_PERIODS.find((p) => p[0] === k);
     seg($('cy-period'), CY_PERIODS, k, (v) => { state.cyPeriod = v; crypto(); });
     const dot = el('i', 'em-livedot' + (cy.live ? ' on' : ''));
-    $('cy-asof').replaceChildren(dot, cy.live ? 'Live prices, updated ' + fTime(cy.at) : 'Saved prices from ' + fStamp(cy.at) + (cy.tried && !cy.busy ? '. Live prices are not reachable right now.' : ''));
+    $('cy-asof').replaceChildren(dot, cy.live ? liveText('updated ' + fTime(cy.at)) : 'Saved prices from ' + fStamp(cy.at) + (cy.tried && !cy.busy ? '. Live prices are not reachable right now.' : ''));
 
     $('cy-hero').replaceChildren(...['bitcoin', 'ethereum', 'solana'].map(coin).filter(Boolean).map((c) => coinTile(c, () => open('coin', c.id), k, true)));
     const g = K.global, tile = (name, val, meta) => { const t = el('div', 'em-tile static'); t.append(el('span', 'em-tile-name', name), el('span', 'em-tile-big', val), el('span', 'em-tile-meta', meta)); return t; };
@@ -963,7 +974,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 
     // Relative performance: every selected token rebased at the first date they all have.
     seg($('cy-range'), CY_RANGES, state.cyRange, (v) => { state.cyRange = v; crypto(); });
-    state.cySel = state.cySel.filter(coin);
+    state.cySel = state.cySel.filter(coin); if (!state.cySel.length) state.cySel = [K.coins[0].id];
     $('cy-pick').replaceChildren(...K.coins.map((c) => {
       const on = state.cySel.includes(c.id), b = btn('em-chip', null, () => { state.cySel = on ? state.cySel.filter((x) => x !== c.id) : state.cySel.concat(c.id); crypto(); });
       b.setAttribute('aria-pressed', String(on)); b.textContent = c.sym; b.title = c.name;
@@ -976,7 +987,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     const start = d3.max(sets, (x) => x.pts[0].d);
     sets.forEach((x) => { x.pts = x.pts.filter((p) => p.d >= start); });
     $('cy-rel-sub').textContent = 'Rebased to 100 on ' + fDay(start);
-    $('cy-perf-sub').textContent = 'Left: the tokens you pick, on one scale. Right: every token ranked by its change over the past ' + pl[2].replace('year to date', 'year so far') + '.';
+    $('cy-perf-sub').textContent = 'First, the tokens you pick on one scale. Then every token ranked by its change ' + (k === 'ytd' ? 'since the start of the year' : 'over the past ' + pl[2]) + '.';
     later(() => multiChart($('cy-rel'), sets, { h: 280 }));
 
     $('cy-rank-sub').textContent = pl[1];
@@ -988,7 +999,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     }));
 
     coinTable($('cy-table'));
-    $('cy-note').textContent = 'Prices and market values from CoinGecko, price history from Yahoo Finance. Stablecoins and exchange tokens are left out. Select a row for the token\'s history. This page is for information, not investment advice.';
+    $('cy-note').textContent = 'Prices and market values from CoinGecko, price history from Yahoo Finance. Dollar-pegged stablecoins are left out. Select a row for the token\'s history. This page is for information, not investment advice.';
     if (!quiet) cyLive();
   }
   function coinTable(tb) {
@@ -1001,7 +1012,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       tr.append(el('td', 'num', String(i + 1)), name, el('td', 'num', usd(c.p)), ...CY_PERIODS.map(([k]) => el('td', 'num ' + dir(c[k]), pct(c[k], 1))), el('td', 'num', bigUsd(c.mc)), el('td', 'num', bigUsd(c.vol)), spc);
       tr.tabIndex = 0; tr.onclick = () => open('coin', c.id); tr.onkeydown = (e) => { if (e.key === 'Enter') open('coin', c.id); };
       body.append(tr);
-      sparkOf(sp, since(coinHist(c), 1), c.y1 >= 0 ? C.up : C.down, c.name + ', past year', false);
+      sparkOf(sp, since(coinHist(c), 1), c.y1 === null || c.y1 === undefined ? C.a : c.y1 >= 0 ? C.up : C.down, c.name + ', past year', false);
     });
     tb.replaceChildren(head, body);
   }
@@ -1108,12 +1119,13 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   function gapTool() {
     const sec = $('cx-gap'); sec.hidden = !CR; if (!CR) return;
     const ids = ['aaa', 'aa', 'a', 'bbb', 'ig', 'bb', 'b', 'ccc', 'hy'], bp = (v) => d3.format(',')(Math.round(v)), sbp = (v) => (v === null ? 'n/a' : fmt(v, 'bp', 0, true));
-    const set = (a, b) => { state.gapA = a; state.gapB = b; gapTool(); };
+    // Whichever of the two pays the wider spread today is treated as the weaker one, so the gap reads the right way round.
+    const set = (a, b) => { if (a !== b && spread(a).latest < spread(b).latest) [a, b] = [b, a]; state.gapA = a; state.gapB = b; gapTool(); };
     seg($('cx-gap-range'), CR_RANGES, state.gapRange, (v) => { state.gapRange = v; gapTool(); });
     const a = state.gapA, b = state.gapB, sa = spread(a), sb = spread(b);
     const tools = $('cx-gap-tools'), chips = el('div', 'em-chips');
     GAP_PRESETS.forEach(([x, y]) => { const c = btn('em-chip', rating(x) + ' minus ' + rating(y), () => set(x, y)); c.setAttribute('aria-pressed', String(x === a && y === b)); chips.append(c); });
-    const pick = (cur, label, fn) => { const w = el('label', 'em-ctl'), sel = el('select', 'em-select'); w.append(el('span', 'em-seglabel', label), sel); ids.forEach((id) => { const o = el('option', '', spread(id).name); o.value = id; o.selected = id === cur; sel.append(o); }); sel.onchange = () => fn(sel.value); return w; };
+    const pick = (cur, label, fn) => { const w = el('label', 'em-ctl'), sel = el('select', 'em-select'); w.append(el('span', 'em-seglabel', label), sel); ids.forEach((id) => { const o = el('option', '', spread(id).name); o.value = id; o.selected = id === cur; sel.append(o); }); sel.onchange = () => holdFocus(() => fn(sel.value)); return w; };
     tools.replaceChildren(chips, pick(a, 'Weaker', (v) => set(v, b)), pick(b, 'Stronger', (v) => set(a, v)));
 
     const body = $('cx-gap-body'), note = $('cx-gap-note');
@@ -1151,7 +1163,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       later(() => lineChart(box, leg, { h: 120, color, unit: 'bp', dec: 0, name: sx.name + ' spread', tfmt: fDay, gaps: false, peers, mr: 76 }));
     });
     body.replaceChildren(left, right);
-    note.textContent = `ICE BofA option-adjusted spreads, read from FRED. Daily readings from ${fDay(all[0].d)} to ${fDay(all[all.length - 1].d)}. The three charts share one pointer: hover over any of them to read the same day on all three.`;
+    note.textContent = `ICE BofA option-adjusted spreads, read from FRED. Daily readings from ${fDay(all[0].d)} to ${fDay(all[all.length - 1].d)}. The three charts share one pointer: point at or tap any of them to read the same day on all three.`;
   }
 
   function indicators() {
@@ -1176,7 +1188,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         if (!r) return;
         const d = el('div'), sp = el('span', 'em-chart em-spark'); sp.style.display = 'block';
         d.append(el('b', '', fmt(num(r.latest), r.unit, +r.dec)), r.name, sp); pair.append(d);
-        sparkOf(sp, clip(series(r.id), 10), color, r.name);
+        sparkOf(sp, clip(series(r.id), 99), color, r.name);
       });
       card.append(el('h3', '', l.title), el('p', '', l.question), pair, el('span', 'em-more', 'Charts and mechanism →'));
       return card;
@@ -1290,7 +1302,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const stats = el('div', 'em-stats');
       stat(stats, 'Prior', fmt(num(r.prior), r.unit, dec));
       stat(stats, 'Year ago', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec));
-      const sp = span(r, state.range); stat(stats, state.range === 10 ? 'Rank since ' + econFrom() : state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
+      const sp = span(r, state.range); stat(stats, state.range >= 99 ? 'Rank since ' + econFrom() : state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
       body.append(stats);
       if (String(r.has_history) !== 'false') { rangeRow(body, 'History'); chartFor(body, r, C.a, null, 220); }
       if (r.id === 'ai_adoption') {
@@ -1369,7 +1381,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const c = coin(id);
       title('Crypto · ' + c.sym, c.name);
       const big = el('div', 'em-big', usd(c.p)), d = cyDelta(c, 'h24', false); d.append(el('small', '', 'over 24 hours · ' + (cy.live ? 'live at ' + fTime(cy.at) : 'as of ' + fStamp(cy.at))));
-      const stats = el('div', 'em-stats'); stats.style.gridTemplateColumns = 'repeat(5, minmax(0, 1fr))'; CY_PERIODS.forEach(([k, lab]) => stat(stats, lab, pct(c[k], 1), dir(c[k])));
+      const stats = el('div', 'em-stats'); stats.style.gridTemplateColumns = 'repeat(auto-fit, minmax(74px, 1fr))'; CY_PERIODS.forEach(([k, lab]) => stat(stats, lab, pct(c[k], 1), dir(c[k])));
       const row = el('div', 'em-drow'), sg = el('div', 'em-seg'), lab = el('div', 'em-dlabel', 'Price history'); lab.style.margin = '0'; row.append(lab, sg);
       seg(sg, CY_RANGES, state.cyRange, (v) => { state.cyRange = v; drawer(); if (state.tab === 'crypto') crypto(true); });
       const box = el('div', 'em-chart'), pts = since(coinHist(c), state.cyRange), dec = pdec(c.p); box.style.minHeight = '230px';
@@ -1381,7 +1393,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       r.append(track((c.p - c.lo) / (c.hi - c.lo || 1)), e); body.append(el('div', 'em-dlabel', '52-week range'), r);
       const facts = el('div', 'em-stats'); facts.style.rowGap = '14px';
       stat(facts, 'Market value', bigUsd(c.mc)); stat(facts, '24h volume', bigUsd(c.vol)); stat(facts, 'In circulation', bigNum(c.supply));
-      stat(facts, 'Maximum supply', c.max ? bigNum(c.max) : 'No cap'); stat(facts, 'All-time high', c.ath ? usd(c.ath) : 'n/a'); stat(facts, 'From all-time high', c.ath ? pct((c.p / c.ath - 1) * 100, 1) : 'n/a', 'down');
+      stat(facts, 'Maximum supply', c.max ? bigNum(c.max) : 'No cap'); stat(facts, 'All-time high', c.ath ? usd(c.ath) : 'n/a'); stat(facts, 'From all-time high', c.ath ? pct(Math.min(0, (c.p / c.ath - 1) * 100), 1) : 'n/a', c.ath && c.p < c.ath ? 'down' : '');
       body.append(el('div', 'em-dlabel', 'Size and supply'), facts);
       if (c.ath_d) body.append(el('p', 'em-note', 'All-time high set on ' + fDay(utc(c.ath_d)) + '.'));
       const src = el('p', 'em-src'), a = el('a', '', 'CoinGecko'); a.href = 'https://www.coingecko.com/en/coins/' + encodeURIComponent(c.id); a.target = '_blank'; a.rel = 'noopener';
@@ -1467,11 +1479,15 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 
   // When each data set was last updated, with a flag on any that has missed its refresh.
   function stamp() {
-    const first = rows('indicators')[0], parts = [], days = (t) => (Date.now() - t) / 864e5;
+    const parts = [], days = (t) => (Date.now() - t) / 864e5;
     const add = (text, late) => { const sp = el('span', '', text); if (late) { sp.append(' ', el('span', 'em-stale', 'refresh overdue')); } parts.push(sp); };
-    if (first && first.retrieved) add('Economic data checked ' + fStamp(new Date(first.retrieved)), days(new Date(first.retrieved)) > 2);
+    // The oldest check among the indicators, so one that has stopped updating cannot hide behind the rest.
+    const checked = d3.min(rows('indicators').filter((r) => r.retrieved && !r.static), (r) => r.retrieved);
+    if (checked) add('Economic data checked ' + fStamp(new Date(checked)), days(new Date(checked)) > 2);
     if (M) add('Markets at the close of ' + fDay(utc(M.asof)), days(utc(M.asof)) > 5);
     if (K) add(cy.live ? 'Crypto live at ' + fTime(cy.at) : 'Crypto as of ' + fStamp(cy.at), !cy.live && days(cy.at) > 1);
+    if (M && M.spreads && days(utc(M.spreads[0].asof)) > 6) add('Credit spreads from ' + fDay(utc(M.spreads[0].asof)), true);
+    if (N && N.built && days(new Date(N.built)) > 1) add('Headlines from ' + fStamp(new Date(N.built)), true);
     const out = []; parts.forEach((p, i) => { if (i) out.push(' · '); out.push(p); });
     $('em-stamp').replaceChildren(...out);
   }

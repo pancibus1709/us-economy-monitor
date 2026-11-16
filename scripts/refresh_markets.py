@@ -209,11 +209,14 @@ def fred(series):
 
 def saved_credit():
     """Spread history already in markets-data.js, as {series id: {date: basis points}}."""
+    if not os.path.exists(OUT):
+        return {}
     try:
         with open(OUT) as f:
             old = json.loads(f.read().split("=", 1)[1].rstrip().rstrip(";"))
-    except (OSError, ValueError, IndexError):
-        return {}
+    except (OSError, ValueError, IndexError) as e:
+        # Stopping here protects the saved days that FRED no longer serves.
+        sys.exit(f"markets-data.js exists but cannot be read ({e}); left unchanged so saved credit history is not lost.")
     out = {}
     c = old.get("credit")
     if c:
@@ -356,8 +359,10 @@ def main():
         "built": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "sectors": SECTORS, "indices": indices, "extra": extra, "stocks": stocks, "vol": vol, "spreads": spreads, "credit": credit,
     }
-    with open(OUT, "w") as f:
-        f.write("const MARKETS = " + json.dumps(data, separators=(",", ":")) + ";\n")
+    text = "const MARKETS = " + json.dumps(data, separators=(",", ":")) + ";\n"
+    with open(OUT + ".tmp", "w") as f:  # written beside the live file, then swapped in whole
+        f.write(text)
+    os.replace(OUT + ".tmp", OUT)
     print(f"wrote {OUT}: {len(stocks)} companies, last close {last_day}, {os.path.getsize(OUT) // 1024} KB")
 
 

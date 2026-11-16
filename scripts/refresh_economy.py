@@ -166,14 +166,21 @@ def build(raw):
     return out
 
 
-def matches(old, new):
-    """Does the rebuilt history agree with the history already published?"""
+def matches(old, new, dec):
+    """Does the rebuilt history agree with the history already published?
+
+    Agencies revise past months, so small differences are allowed. A wrong series, a shifted month
+    or a changed method produces large ones and is refused.
+    """
     common = sorted(d for d in old if d in new)[-40:-3]  # the newest readings may have been revised
     if len(common) < 12:
         return False, f"only {len(common)} months overlap"
-    spread = (max(old.values()) - min(old.values())) or 1
-    off = [d for d in common if abs(old[d] - new[d]) > max(0.011, 0.004 * spread)]
-    return len(off) <= len(common) * 0.2, f"{len(common) - len(off)} of {len(common)} months agree"
+    recent = [old[d] for d in common]
+    tol = max(1.5 * 10 ** -dec, 0.05 * (max(recent) - min(recent)))
+    diffs = [abs(old[d] - new[d]) for d in common]
+    off = sum(x > tol for x in diffs)
+    ok = off <= 0.15 * len(common) and max(diffs) <= 10 * tol
+    return ok, f"{len(common) - off} of {len(common)} months agree, largest difference {max(diffs):.3g}"
 
 
 def ordinal(n):
@@ -254,7 +261,7 @@ def main():
         new, daily = built[i]
         first = min(old[i]) if i in old else "2017-01-01"
         new = {d: v for d, v in new.items() if d >= first}
-        ok, why = matches(old.get(i, {}), new)
+        ok, why = matches(old.get(i, {}), new, int(r["dec"]))
         # A month already published stays, even where a gap in the source stops it being rebuilt.
         new = {**{d: v for d, v in old.get(i, {}).items() if d not in new and new and d < max(new)}, **new}
         if not ok:
@@ -266,7 +273,12 @@ def main():
             day = max(daily)
             latest, asof = daily[day], day
             pm = shift(month(day), -1)
-            prior = new.get(pm)
+            if pm not in new:  # no reading last month: use the latest month before this one
+                pm = max((d for d in new if d < month(day)), default=None)
+            if pm is None:
+                held.append(f"{r['name']} (no earlier month to compare with)")
+                continue
+            prior = new[pm]
             if i == "debt":
                 prior_label = f"vs end of {label(pm, 'M')}"
             else:
@@ -299,12 +311,10 @@ def main():
         changed = any(r.get(k) != fresh[k] for k in ("asof", "latest", "prior", "year_ago"))
         (updated if changed else same).append(f"{r['name']}: {r['latest']} ({r['period']}) -> {fresh['latest']} ({fresh['period']})")
         r.update(fresh)
+        r["retrieved"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")  # only indicators that passed the check
         if i not in ("debt", "avg_rate", "sentiment"):
             r["via"] = VIA_FRED
         series[i] = new
-    for r in data["indicators"]:
-        r["retrieved"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-
     data["series"] = [{"id": r["id"], "date": d, "value": str(round(v, 2))} for r in data["indicators"] for d, v in sorted(series[r["id"]].items())]
 
     ind = {r["id"]: r for r in data["indicators"]}
@@ -330,8 +340,10 @@ def main():
             if abs(c - float(l["corr"])) <= 0.08 and abs(len(pairs) - int(l["corr_n"])) <= 6:  # same method as before
                 l["corr"], l["corr_n"] = round(c, 2), len(pairs)
 
-    with open(OUT, "w") as f:
-        f.write("const DATA = " + json.dumps(data, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/") + ";\n")
+    text = "const DATA = " + json.dumps(data, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/") + ";\n"
+    with open(OUT + ".tmp", "w") as f:  # written beside the live file, then swapped in whole
+        f.write(text)
+    os.replace(OUT + ".tmp", OUT)
     print(f"wrote {OUT}: {len(updated)} updated, {len(same)} unchanged, {len(held)} held")
     for u in updated:
         print("  updated:", u)
