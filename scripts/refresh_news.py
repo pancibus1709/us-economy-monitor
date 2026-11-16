@@ -3,7 +3,9 @@
 
   python3 scripts/refresh_news.py
 
-Headlines come from the public RSS feeds of Bloomberg, The Wall Street Journal and the Financial Times.
+Headlines come from the public RSS feeds listed in FEEDS: Bloomberg, The Wall Street Journal, the Financial Times,
+MarketWatch, The New York Times, The Economist, the Federal Reserve, Politico, The Hill, MIT Technology Review,
+Ars Technica, CoinDesk, The Block and Decrypt.
 Only the headline, link, outlet and publication time are kept.
 """
 import datetime as dt
@@ -26,23 +28,42 @@ FEEDS = [
     ("Markets", "Bloomberg", "https://feeds.bloomberg.com/markets/news.rss"),
     ("Markets", "WSJ", "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"),
     ("Markets", "Financial Times", "https://www.ft.com/markets?format=rss"),
+    ("Markets", "MarketWatch", "https://feeds.content.dowjones.io/public/rss/mw_topstories"),
     ("Economy", "Bloomberg", "https://feeds.bloomberg.com/economics/news.rss"),
+    ("Economy", "WSJ", "https://feeds.content.dowjones.io/public/rss/socialeconomyfeed"),
     ("Economy", "Financial Times", "https://www.ft.com/global-economy?format=rss"),
+    ("Economy", "New York Times", "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"),
+    ("Economy", "The Economist", "https://www.economist.com/finance-and-economics/rss.xml"),
+    ("Economy", "Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml"),
     ("Politics", "Bloomberg", "https://feeds.bloomberg.com/politics/news.rss"),
     ("Politics", "Financial Times", "https://www.ft.com/us-politics-policy?format=rss"),
+    ("Politics", "New York Times", "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"),
+    ("Politics", "Politico", "https://rss.politico.com/politics-news.xml"),
+    ("Politics", "The Hill", "https://thehill.com/business/feed/"),
     ("Technology", "Bloomberg", "https://feeds.bloomberg.com/technology/news.rss"),
     ("Technology", "WSJ", "https://feeds.content.dowjones.io/public/rss/RSSWSJD"),
     ("Technology", "Financial Times", "https://www.ft.com/technology?format=rss"),
+    ("Technology", "New York Times", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"),
+    ("Technology", "MIT Technology Review", "https://www.technologyreview.com/feed/"),
+    ("Technology", "Ars Technica", "https://feeds.arstechnica.com/arstechnica/technology-lab"),
     ("AI", "Financial Times", "https://www.ft.com/artificial-intelligence?format=rss"),
+    ("Crypto", "Bloomberg", "https://feeds.bloomberg.com/crypto/news.rss"),
+    ("Crypto", "Financial Times", "https://www.ft.com/cryptofinance?format=rss"),
+    ("Crypto", "CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
+    ("Crypto", "The Block", "https://www.theblock.co/rss.xml"),
+    ("Crypto", "Decrypt", "https://decrypt.co/feed"),
 ]
-ALLOWED_HOSTS = ("bloomberg.com", "wsj.com", "ft.com")
+ALLOWED_HOSTS = ("bloomberg.com", "wsj.com", "ft.com", "marketwatch.com", "nytimes.com", "economist.com", "federalreserve.gov",
+                 "politico.com", "thehill.com", "technologyreview.com", "arstechnica.com", "coindesk.com", "theblock.co", "decrypt.co")
 AI_WORDS = re.compile(r"\b(A\.?I\.?|artificial intelligence|OpenAI|Anthropic|ChatGPT|Claude|Gemini|Copilot|chatbots?|"
                       r"Nvidia|data cent(?:er|re)s?|large language models?|LLMs?|xAI|DeepSeek|Mistral)\b")
 # Sponsored guides, newsletters, transcripts and lifestyle columns are not news.
 SKIP = re.compile(r"(^\d+ of the Best|Best .* Companies|You May Have Missed|^Transcript|Our Reporter|^Chart of the Week|"
-                  r"^Europe Express|^FirstFT|^By The Way|side hustle|^How I |^My |^Opinion|Newsletter|Podcast|Quiz|Crossword)", re.I)
-SKIP_PATHS = ("/buyside/", "/lifestyle/", "/style/", "/arts-culture/", "/personal-finance/", "/video/")
-ORDER = ["Markets", "Economy", "Politics", "Technology", "AI"]
+                  r"^Europe Express|^FirstFT|^By The Way|side hustle|^How I |^My |^Should (a|an|I|we|my) |^Opinion|Newsletter|Podcast|Quiz|Crossword|"
+                  # Advice columns open on a reader's quote; these are digests and sponsored posts, not news.
+                  r"^[\u2018\u201c'\"]|^The Download|^Checks and Balance|^Sponsored|Price Prediction|^Here.s (what|how)|\bhoroscope)", re.I)
+SKIP_PATHS = ("/buyside/", "/lifestyle/", "/style/", "/arts-culture/", "/personal-finance/", "/video/", "/picks/", "/sponsored", "/press-releases/", "/learn/")
+ORDER = ["Markets", "Economy", "Politics", "Technology", "AI", "Crypto"]
 
 
 def fetch(url):

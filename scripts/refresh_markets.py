@@ -8,7 +8,7 @@ Sources
   Index membership and weights    Daily holdings of SPY and DIA (State Street) and QQQ (Invesco)
   GICS sector and sub-industry    Wikipedia's S&P 500 constituent table; GICS_EXTRA below for the rest
   VIX and MOVE                    Yahoo Finance chart endpoint (daily closes)
-  Credit spreads                  ICE BofA option-adjusted spreads, via FRED
+  Credit spreads                  ICE BofA option-adjusted spreads, via FRED (each rating keeps its daily history)
 """
 import datetime as dt
 import html
@@ -207,6 +207,25 @@ def fred(series):
     return out
 
 
+def saved_credit():
+    """Spread history already in markets-data.js, as {series id: {date: basis points}}."""
+    try:
+        with open(OUT) as f:
+            old = json.loads(f.read().split("=", 1)[1].rstrip().rstrip(";"))
+    except (OSError, ValueError, IndexError):
+        return {}
+    out = {}
+    c = old.get("credit")
+    if c:
+        for i, vals in c["v"].items():
+            out[i] = {d: v for d, v in zip(c["dates"], vals) if v is not None}
+    else:  # earlier layout: history sat on the high yield and investment grade rows only
+        for sp in old.get("spreads", []):
+            if sp.get("hist"):
+                out[sp["id"]] = {d: v for d, v in sp["hist"]}
+    return out
+
+
 def main():
     print("holdings", flush=True)
     spy, spy_asof = ssga_holdings("spy")
@@ -305,24 +324,37 @@ def main():
         })
 
     print("credit spreads", flush=True)
+    # FRED serves a rolling three-year window for these series. Days already saved are kept,
+    # so the history on the page grows past three years as the window moves on.
+    saved = saved_credit()
+    by_day = {}
+    for i, code, name in SPREADS:
+        merged = dict(saved.get(i, {}))
+        merged.update(fred(code))
+        if len(merged) < 200:
+            sys.exit(f"Credit spread history for {name} ({code}) has only {len(merged)} days.")
+        for d, v in merged.items():
+            by_day.setdefault(d, {})[i] = v
+    days = sorted(by_day)
     spreads = []
     for i, code, name in SPREADS:
-        pts = fred(code)
+        pts = [(d, by_day[d][i]) for d in days if i in by_day[d]]
         vals = [v for _, v in pts]
         last_d = dt.date.fromisoformat(pts[-1][0])
-        prev = lambda days: next((v for d, v in reversed(pts) if dt.date.fromisoformat(d) <= last_d - dt.timedelta(days=days)), None)
+        prev = lambda n: next((v for d, v in reversed(pts) if dt.date.fromisoformat(d) <= last_d - dt.timedelta(days=n)), None)
+        chg = lambda base: None if base is None else vals[-1] - base
         spreads.append({
             "id": i, "name": name, "code": code, "asof": pts[-1][0], "latest": vals[-1],
-            "d1": vals[-1] - vals[-2], "m1": vals[-1] - prev(30), "y1": vals[-1] - prev(365),
+            "d1": vals[-1] - vals[-2], "m1": chg(prev(30)), "y1": chg(prev(365)),
             "lo": min(vals), "hi": max(vals), "med": sorted(vals)[len(vals) // 2],
             "pct": round(100 * sum(v <= vals[-1] for v in vals) / len(vals)), "from": pts[0][0],
-            "hist": pts if i in ("hy", "ig") else [],
         })
+    credit = {"dates": days, "v": {i: [by_day[d].get(i) for d in days] for i, _, _ in SPREADS}}
 
     data = {
         "asof": last_day.isoformat(), "holdings_asof": spy_asof,
         "built": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "sectors": SECTORS, "indices": indices, "extra": extra, "stocks": stocks, "vol": vol, "spreads": spreads,
+        "sectors": SECTORS, "indices": indices, "extra": extra, "stocks": stocks, "vol": vol, "spreads": spreads, "credit": credit,
     }
     with open(OUT, "w") as f:
         f.write("const MARKETS = " + json.dumps(data, separators=(",", ":")) + ";\n")
