@@ -12,7 +12,8 @@ Sources
   FRED (Federal Reserve Bank of St. Louis), which republishes each agency's release unchanged
   US Treasury Fiscal Data: Debt to the Penny, Average Interest Rates
   University of Michigan Surveys of Consumers: index of consumer sentiment
-  National Association of Realtors: Pending Home Sales Index, read from its latest news release
+  National Association of Realtors: Pending Home Sales Index, read from its latest news release;
+  existing-home sales through FRED, which carries only NAR's latest 13 months
 The Ramp AI Index is read by hand and is left as it is.
 """
 import datetime as dt
@@ -36,7 +37,7 @@ FRED = {
     "gdp": ("level", "A191RL1Q225SBEA"), "productivity": ("level", "PRS85006092"),
     "ip_yoy": ("yoy", "INDPRO"), "unrate": ("level", "UNRATE"), "payrolls_chg": ("diff", "PAYEMS"),
     "epop_prime": ("level", "LNS12300060"), "ahe_yoy": ("yoy", "CES0500000003"), "openings_m": ("thousandth", "JTSJOL"),
-    "quits": ("level", "JTSQUR"), "cpi_yoy": ("yoy", "CPIAUCNS"), "core_cpi_yoy": ("yoy", "CPILFENS"),
+    "quits": ("level", "JTSQUR"), "cpi_yoy": ("yoy", "CPIAUCNS"), "cpi_chg": ("mom", "CPIAUCSL"), "core_cpi_yoy": ("yoy", "CPILFENS"),
     "shelter_yoy": ("yoy", "CUUR0000SAH1"), "core_goods_yoy": ("yoy", "CUUR0000SACL1E"),
     "core_services_yoy": ("yoy", "CUUR0000SASLE"), "core_pce_yoy": ("yoy", "PCEPILFE"), "ppi_yoy": ("yoy", "PPIFID"),
     "real_pce_yoy": ("yoy", "PCEC96"), "retail_yoy": ("yoy", "RSAFS"), "saving": ("level", "PSAVERT"),
@@ -44,7 +45,7 @@ FRED = {
     "biz_apps": ("thousandth", "BABATOTALSAUS"),
     "mortgage30": ("daily", "MORTGAGE30US"), "effr": ("daily", "EFFR"), "y2": ("daily", "DGS2"), "y10": ("daily", "DGS10"),
 }
-EXTRA = ["UNEMPLOY", "DGS3MO", "MTSDS133FMS"]
+EXTRA = ["UNEMPLOY", "DGS3MO", "MTSDS133FMS", "EXHOSLUSM495S"]
 
 
 def get(url, agent="python-requests/2.31", tries=4):
@@ -59,7 +60,7 @@ def get(url, agent="python-requests/2.31", tries=4):
     raise RuntimeError(f"{url}: {last}")
 
 
-def fred(code):
+def fred(code, least=20):
     out = {}
     for line in get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={code}").splitlines()[1:]:
         d, _, v = line.partition(",")
@@ -67,7 +68,7 @@ def fred(code):
             out[d] = float(v)
         except ValueError:
             pass
-    if len(out) < 20:
+    if len(out) < least:
         raise RuntimeError(f"FRED {code}: only {len(out)} observations")
     return out
 
@@ -169,6 +170,42 @@ def pending(r, p, now):
     return ("updated" if changed else "same"), msg
 
 
+def existing(r, src, now):
+    """Update existing-home sales from FRED, which carries only NAR's latest 13 months.
+
+    Each run's 13 months overwrite the same months already kept (so revisions come through), and
+    months that have dropped out of FRED's window are kept, so the history grows. A rebuilt month
+    that differs from the kept one by more than 0.15 million is refused. Returns (result, message).
+    """
+    if not src or len(src) < 12:
+        return "held", f"Existing-home sales (FRED returned {len(src or {})} months)"
+    hist = {h[0]: h for h in r.get("history", [])}
+    new = {d: round(v / 1e6, 2) for d, v in src.items()}
+    off = [d for d in new if d in hist and d < max(new) and abs(hist[d][1] - new[d]) > 0.15]
+    if off:
+        return "held", f"Existing-home sales (rebuilt months differ from those kept: {off[:3]})"
+    d = max(new)
+    if d < r["asof"]:
+        return "held", f"Existing-home sales (source is behind the page: {d} against {r['asof']})"
+    for k, v in new.items():
+        hist[k] = [k, v]
+    pk = shift(d, -1) if shift(d, -1) in hist else max((k for k in hist if k < d), default=None)
+    ya = hist.get(shift(d, -12))
+    rd = lambda x: None if x is None else round(x + 0.0, 2)
+    fresh = {"period": label(d, "M"), "asof": d, "latest": rd(hist[d][1]),
+             "prior": rd(hist[pk][1]) if pk else None, "prior_label": f"vs {label(pk, 'M')}" if pk else "",
+             "year_ago": rd(ya[1]) if ya else None}
+    fresh["change"] = rd(fresh["latest"] - fresh["prior"]) if pk else None
+    fresh["change_1y"] = rd(fresh["latest"] - fresh["year_ago"]) if ya else None
+    msg = f"{r['name']}: {r['latest']} ({r['period']}) -> {fresh['latest']} ({fresh['period']})"
+    changed = any(r.get(k) != fresh[k] for k in ("asof", "latest", "prior", "year_ago"))
+    r.update(fresh)
+    r["history"] = [hist[k] for k in sorted(hist)]
+    r["via"] = VIA_FRED
+    r["retrieved"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return ("updated" if changed else "same"), msg
+
+
 def month(d):
     return d[:7] + "-01"
 
@@ -210,6 +247,9 @@ def build(raw):
         s = raw[code]
         if kind == "yoy":
             out[i] = (yoy(s), None)
+        elif kind == "mom":
+            # Rounded to one decimal here, as BLS states it, so the chart and the headline show the same figure.
+            out[i] = ({d: round((v / s[shift(d, -1)] - 1) * 100, 1) for d, v in s.items() if shift(d, -1) in s and s[shift(d, -1)]}, None)
         elif kind == "diff":
             out[i] = ({d: s[d] - s[shift(d, -1)] for d in s if shift(d, -1) in s}, None)
         elif kind == "thousandth":
@@ -307,7 +347,7 @@ def main():
         s.pop("text", None)  # written once by hand and never refreshed; the page builds these cards from the indicators
 
     codes = sorted({c for _, c in FRED.values()} | set(EXTRA))
-    jobs = {c: (lambda c=c: fred(c)) for c in codes}
+    jobs = {c: (lambda c=c: fred(c, 12 if c == "EXHOSLUSM495S" else 20)) for c in codes}
     jobs["debt"] = lambda: fiscal("v2/accounting/od/debt_to_penny", "tot_pub_debt_out_amt")
     jobs["avg_rate"] = lambda: fiscal("v2/accounting/od/avg_interest_rates", "avg_interest_rate_amt", ",security_desc:eq:Total%20Marketable")
     jobs["michigan"] = michigan
@@ -399,8 +439,8 @@ def main():
             r["via"] = VIA_FRED
         series[i] = new
     for r in data["indicators"]:
-        if r["id"] == "pending_sales":
-            kind, msg = pending(r, raw.get("nar"), now)
+        if r["id"] in ("pending_sales", "existing_sales"):
+            kind, msg = pending(r, raw.get("nar"), now) if r["id"] == "pending_sales" else existing(r, raw.get("EXHOSLUSM495S"), now)
             {"updated": updated, "same": same, "held": held}[kind].append(msg)
     data["series"] = [{"id": r["id"], "date": d, "value": str(round(v, 2))} for r in data["indicators"] for d, v in sorted(series[r["id"]].items())]
 

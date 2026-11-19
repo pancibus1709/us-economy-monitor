@@ -32,7 +32,7 @@ trading day, because index levels can be corrected for an hour or so after the c
 |---|---|
 | 8:40 am | The 8:30 am releases: jobs report, CPI, PPI, GDP, personal income and spending (PCE), retail sales, housing starts and permits, productivity |
 | 9:25 am | Federal funds rate (New York Fed, about 9:00 am, for the day before) and industrial production (9:15 am) |
-| 10:10 am | The 10:00 am releases: job openings and quits (JOLTS), consumer sentiment, business applications, pending home sales (National Association of Realtors) |
+| 10:10 am | The 10:00 am releases: job openings and quits (JOLTS), consumer sentiment, business applications, pending home sales and existing-home sales (National Association of Realtors) |
 | 12:10 pm | Mortgage rates (Freddie Mac, Thursdays at noon) |
 | 4:25 pm | Monthly Treasury Statement (2:00 pm on its day), Debt to the Penny (about 3:00 pm), Treasury yields (Federal Reserve H.15, 4:15 pm, for the day before) |
 | 5:25 pm | A second look at the afternoon publications |

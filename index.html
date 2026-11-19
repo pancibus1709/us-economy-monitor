@@ -541,6 +541,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
             <tr><td>Mortgage rates</td><td><a href="https://www.freddiemac.com/pmms" target="_blank" rel="noopener">Freddie Mac</a></td><td>Thursdays, after noon</td></tr>
             <tr><td>Treasury yields</td><td><a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates" target="_blank" rel="noopener">US Treasury</a></td><td>Weekdays, late afternoon, one business day behind</td></tr>
             <tr><td>Federal funds rate</td><td><a href="https://www.newyorkfed.org/markets/reference-rates/effr" target="_blank" rel="noopener">Federal Reserve Bank of New York</a></td><td>Weekday mornings, one business day behind</td></tr>
+            <tr><td>Existing-home sales</td><td><a href="https://www.nar.realtor/research-and-statistics/housing-statistics/existing-home-sales" target="_blank" rel="noopener">National Association of Realtors</a></td><td>After the 10 am release</td></tr>
             <tr><td>Federal deficit</td><td><a href="https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/" target="_blank" rel="noopener">US Treasury, Monthly Treasury Statement</a></td><td>The afternoon it is published</td></tr>
             <tr class="em-group"><td colspan="3">Economy, read directly</td></tr>
             <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Weekdays, late afternoon</td></tr>
@@ -1521,9 +1522,9 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       // Indicators read from a release rather than a series (pending home sales) carry their own short history.
       if (Array.isArray(r.history) && r.history.length > 2) {
         const t = el('div', 'em-chart-title'), key = el('i'); key.style.background = C.a;
-        t.append(key, r.name, el('span', '', 'percent, monthly, as first published'));
+        t.append(key, r.name, el('span', '', r.history_note || ''));
         const box = el('div', 'em-chart'); box.style.minHeight = '200px'; body.append(t, box);
-        later(() => lineChart(box, r.history.map((h) => ({ d: utc(h[0]), v: +h[1] })), { name: r.name, unit: r.unit, dec: +r.dec, color: C.a, h: 200, zero: true }));
+        later(() => lineChart(box, r.history.map((h) => ({ d: utc(h[0]), v: +h[1] })), { name: r.name, unit: r.unit, dec: +r.dec, color: C.a, h: 200, zero: r.unit === '%' }));
       }
       if (r.id === 'ai_adoption') {
         const wrap = el('div', 'em-bars'); let g = '';
