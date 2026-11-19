@@ -12,11 +12,13 @@ Sources
   FRED (Federal Reserve Bank of St. Louis), which republishes each agency's release unchanged
   US Treasury Fiscal Data: Debt to the Penny, Average Interest Rates
   University of Michigan Surveys of Consumers: index of consumer sentiment
+  National Association of Realtors: Pending Home Sales Index, read from its latest news release
 The Ramp AI Index is read by hand and is left as it is.
 """
 import datetime as dt
 import json
 import os
+import re
 import statistics
 import sys
 import time
@@ -87,6 +89,84 @@ def michigan():
             except ValueError:
                 pass
     return out
+
+
+NAR_PAGE = "https://www.nar.realtor/research-and-statistics/housing-statistics/pending-home-sales"
+
+
+def nar_pending():
+    """The latest national Pending Home Sales figures, as NAR states them in its news release.
+
+    NAR publishes no machine-readable series. Its release states the month, the change from the month
+    before and the change from a year earlier in plain text, and the infographic's description gives the
+    index level. Anything that does not read cleanly raises, and the indicator keeps its last reading.
+    """
+    page = get(NAR_PAGE, agent="Mozilla/5.0")
+    m = re.search(r'(?:https://(?:www\.)?nar\.realtor)?/newsroom/[a-z0-9-]*pending-home-sales[a-z0-9-]*', page)
+    if not m:
+        raise RuntimeError("NAR: no link to the latest pending home sales release")
+    url = m.group(0) if m.group(0).startswith("http") else "https://www.nar.realtor" + m.group(0)
+    html = get(url, agent="Mozilla/5.0")
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", re.sub(r"(?s)<(script|style).*?</\1>", " ", html))).replace("&nbsp;", " ")
+    b = re.search(r"(" + "|".join(LONG) + r") (20\d\d) National Pending Home Sales(.{0,300}?)(?:" + "|".join(LONG) + r") 20\d\d Regional", text)
+    if not b:
+        raise RuntimeError(f"NAR: national figures not found in {url}")
+
+    def pct(what):
+        x = re.search(r"(no change|(\d{1,2}\.\d)% (increase|decrease)) " + what, b.group(3), re.I)
+        if not x:
+            raise RuntimeError(f"NAR: {what} change not found in {url}")
+        return 0.0 if x.group(1).lower() == "no change" else float(x.group(2)) * (1 if x.group(3).lower() == "increase" else -1)
+    mom, yoy = pct(r"month[- ]over[- ]month"), pct(r"year[- ]over[- ]year")
+    if abs(mom) > 40 or abs(yoy) > 60:
+        raise RuntimeError(f"NAR: implausible figures {mom}% and {yoy}%")
+    # The index level is only in the infographic's description. A page can carry other months' infographics,
+    # so only a description that names this month and year is used.
+    when = f"{b.group(1)} {b.group(2)}"
+    level = None
+    for a in re.findall(r'alt="([^"]*)"', html):
+        x = re.search(r"[Ii]ndex (?:was|of) (\d{2,3}\.\d)", a)
+        if when in a and x:
+            level = float(x.group(1))
+            break
+    rel = re.search(r"WASHINGTON \((\w+ \d{1,2}, 20\d\d)\)", text)
+    return {"date": f"{b.group(2)}-{LONG.index(b.group(1)) + 1:02d}-01", "mom": mom, "yoy": yoy,
+            "index": level, "released": rel.group(1) if rel else "", "url": url}
+
+
+def pending(r, p, now):
+    """Update the pending home sales indicator from NAR's release. Returns (result, message)."""
+    if not p:
+        return "held", "Pending home sales (NAR's release could not be read)"
+    if p["date"] < r["asof"]:
+        return "held", f"Pending home sales (source is behind the page: {p['date']} against {r['asof']})"
+    if p["date"] > month(now.strftime("%Y-%m-%d")):
+        return "held", f"Pending home sales (release dated in the future: {p['date']})"
+    hist = {h[0]: h for h in r.get("history", [])}  # [month, change from a year earlier, from the month before, index]
+    hist[p["date"]] = [p["date"], p["yoy"], p["mom"], p["index"]]
+    d = p["date"]
+    pk = shift(d, -1) if shift(d, -1) in hist else max((k for k in hist if k < d), default=None)
+    ya = hist.get(shift(d, -12))
+    rd = lambda x: None if x is None else round(x + 0.0, 1)
+    fresh = {"period": label(d, "M"), "asof": d, "latest": rd(p["yoy"]),
+             "prior": rd(hist[pk][1]) if pk else None, "prior_label": f"vs {label(pk, 'M')}" if pk else "",
+             "year_ago": rd(ya[1]) if ya else None}
+    fresh["change"] = rd(fresh["latest"] - fresh["prior"]) if pk else None
+    fresh["change_1y"] = rd(fresh["latest"] - fresh["year_ago"]) if ya else None
+    prev = LONG[int(shift(d, -1)[5:7]) - 1]
+    move = "unchanged from" if p["mom"] == 0 else f"{'up' if p['mom'] > 0 else 'down'} {abs(p['mom']):.1f}% from"
+    via = f"Read from NAR's news release of {p['released']}" if p["released"] else "Read from NAR's latest news release"
+    if p["index"] is not None:
+        via += f". The index was {p['index']:.1f} (2001 = 100), {move} {prev}"
+    else:
+        via += f". Contract signings were {move} {prev}"
+    msg = f"{r['name']}: {r['latest']} ({r['period']}) -> {fresh['latest']} ({fresh['period']})"
+    changed = any(r.get(k) != fresh[k] for k in ("asof", "latest", "prior", "year_ago"))
+    r.update(fresh)
+    r["history"] = [hist[k] for k in sorted(hist)]
+    r["via"], r["release_url"] = via, p["url"]
+    r["retrieved"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return ("updated" if changed else "same"), msg
 
 
 def month(d):
@@ -231,6 +311,7 @@ def main():
     jobs["debt"] = lambda: fiscal("v2/accounting/od/debt_to_penny", "tot_pub_debt_out_amt")
     jobs["avg_rate"] = lambda: fiscal("v2/accounting/od/avg_interest_rates", "avg_interest_rate_amt", ",security_desc:eq:Total%20Marketable")
     jobs["michigan"] = michigan
+    jobs["nar"] = nar_pending
 
     def run(k):
         try:
@@ -317,6 +398,10 @@ def main():
         if i not in ("debt", "avg_rate", "sentiment"):
             r["via"] = VIA_FRED
         series[i] = new
+    for r in data["indicators"]:
+        if r["id"] == "pending_sales":
+            kind, msg = pending(r, raw.get("nar"), now)
+            {"updated": updated, "same": same, "held": held}[kind].append(msg)
     data["series"] = [{"id": r["id"], "date": d, "value": str(round(v, 2))} for r in data["indicators"] for d, v in sorted(series[r["id"]].items())]
 
     ind = {r["id"]: r for r in data["indicators"]}

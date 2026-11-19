@@ -545,6 +545,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
             <tr class="em-group"><td colspan="3">Economy, read directly</td></tr>
             <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Weekdays, late afternoon</td></tr>
             <tr><td>Consumer sentiment</td><td><a href="https://www.sca.isr.umich.edu/" target="_blank" rel="noopener">University of Michigan</a></td><td>After the 10 am release</td></tr>
+            <tr><td>Pending home sales</td><td><a href="https://www.nar.realtor/research-and-statistics/housing-statistics/pending-home-sales" target="_blank" rel="noopener">National Association of Realtors</a></td><td>After the 10 am release</td></tr>
             <tr><td>Business AI adoption</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a></td><td>By hand</td></tr>
             <tr class="em-group"><td colspan="3">Markets</td></tr>
             <tr><td>Index levels, share prices, VIX and MOVE</td><td><a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a></td><td>After the close on trading days</td></tr>
@@ -1517,6 +1518,13 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const sp = span(r, state.range); stat(stats, state.range >= 99 ? 'Rank since ' + econFrom() : state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
       body.append(stats);
       if (String(r.has_history) !== 'false') { rangeRow(body, 'History'); chartFor(body, r, C.a, null, 220); }
+      // Indicators read from a release rather than a series (pending home sales) carry their own short history.
+      if (Array.isArray(r.history) && r.history.length > 2) {
+        const t = el('div', 'em-chart-title'), key = el('i'); key.style.background = C.a;
+        t.append(key, r.name, el('span', '', 'percent, monthly, as first published'));
+        const box = el('div', 'em-chart'); box.style.minHeight = '200px'; body.append(t, box);
+        later(() => lineChart(box, r.history.map((h) => ({ d: utc(h[0]), v: +h[1] })), { name: r.name, unit: r.unit, dec: +r.dec, color: C.a, h: 200, zero: true }));
+      }
       if (r.id === 'ai_adoption') {
         const wrap = el('div', 'em-bars'); let g = '';
         rows('ramp').filter((x) => x.group !== 'All').forEach((x) => {
