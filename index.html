@@ -256,6 +256,15 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-brow { display: grid; grid-template-columns: minmax(90px, 150px) minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 13px; }
 .em-btrack { background: var(--cobalt-wash); height: 12px; border-radius: 3px; } .em-bfill { background: var(--cobalt); height: 12px; border-radius: 0 3px 3px 0; }
 .em-brow span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+/* AI tab: bar rows with a change column, and a compact stat grid. */
+.em-brow.chg { grid-template-columns: minmax(96px, 170px) minmax(0, 1fr) 50px 64px; }
+.em-brow.chg span:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.em-brow.chg span:last-child { font-weight: 500; color: var(--ink-3); font-size: 12px; }
+.em-brow > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) { .em-brow.chg { grid-template-columns: minmax(0, 1fr) 46px 58px; row-gap: 3px; } .em-brow.chg .em-btrack { grid-column: 1 / -1; grid-row: 2; height: 8px; } .em-brow.chg .em-bfill { height: 8px; } .em-brow.chg + .em-brow.chg { margin-top: 4px; } }
+.em-aistats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.em-aistats .em-stat-v small { display: block; font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
+.em-ctlrow { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 8px; }
 .em-li.sec { grid-template-columns: minmax(0, 1fr) 40px minmax(50px, .7fr) 58px; }
 .em-li-w { font-size: 12px; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
 .em-g3.wide1 { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); }
@@ -392,6 +401,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       <button type="button" class="em-tab" role="tab" data-tab="overview">Overview</button>
       <button type="button" class="em-tab" role="tab" data-tab="markets">Markets</button>
       <button type="button" class="em-tab" role="tab" data-tab="crypto">Crypto</button>
+      <button type="button" class="em-tab" role="tab" data-tab="ai">AI</button>
       <button type="button" class="em-tab" role="tab" data-tab="indicators">Indicators</button>
       <button type="button" class="em-tab" role="tab" data-tab="connections">Connections</button>
       <button type="button" class="em-tab" role="tab" data-tab="data">Data tables</button>
@@ -491,6 +501,53 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       </div>
     </section>
 
+    <section class="em-panel" id="p-ai" role="tabpanel" hidden>
+      <div class="em-bar"><div class="em-wrap"><span class="em-asof" id="ai-asof" style="margin-left:0"></span></div></div>
+      <div class="em-wrap" id="ai-body">
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Business adoption</h2><p class="em-sub">The share of US businesses on Ramp that paid for an AI model, subscription or API in the month, from card, invoice and bank payments. Ramp's customers lean toward technology and younger firms, so the level runs well above survey measures.</p></div></div>
+          <div class="em-grid em-g4" id="ai-adopt-tiles"></div>
+          <div class="em-card" style="margin-top:12px">
+            <h3 class="em-card-h">Share of businesses paying <span id="ai-adopt-csub"></span></h3>
+            <div class="em-legend" id="ai-adopt-legend"></div>
+            <div class="em-chart" id="ai-adopt" style="min-height:260px"></div>
+          </div>
+          <div class="em-grid em-g2" style="margin-top:12px">
+            <div class="em-card"><h3 class="em-card-h">By industry <span id="ai-ind-sub"></span></h3><div class="em-bars" id="ai-ind"></div></div>
+            <div class="em-card">
+              <h3 class="em-card-h">By company size <span id="ai-size-sub"></span></h3><div class="em-bars" id="ai-size"></div>
+              <h3 class="em-card-h" style="margin-top:22px">Spend on AI <span id="ai-spend-sub"></span></h3><div class="em-stats em-aistats" id="ai-spend"></div>
+            </div>
+          </div>
+        </div>
+        <div class="em-sec">
+          <div class="em-sechead"><div><h2 class="em-h2">Tokens</h2><p class="em-sub">Usage, spend and prices for AI models billed by the token, from businesses that track it in Ramp's AI spend management product. Ramp revises past weeks when a business connects a new provider, and says these figures do not represent all AI spending on Ramp.</p></div>
+            <div class="em-ctl"><span class="em-seglabel">History</span><div class="em-seg" id="ai-range" role="group" aria-label="Token history"></div></div></div>
+          <div class="em-grid em-g4" id="ai-tok-tiles"></div>
+          <div class="em-grid em-g2" style="margin-top:12px">
+            <div class="em-card">
+              <h3 class="em-card-h">Share by model maker <span id="ai-share-sub"></span></h3>
+              <div class="em-ctlrow"><div class="em-seg" id="ai-measure" role="group" aria-label="Measure"></div></div>
+              <div class="em-legend" id="ai-share-legend"></div>
+              <div class="em-chart" id="ai-share" style="min-height:240px"></div>
+            </div>
+            <div class="em-card">
+              <h3 class="em-card-h">Total volume and spend <span id="ai-total-sub"></span></h3>
+              <div class="em-legend" id="ai-total-legend"></div>
+              <div class="em-chart" id="ai-total" style="min-height:270px"></div>
+            </div>
+          </div>
+          <div class="em-card" style="margin-top:12px">
+            <h3 class="em-card-h">Price per million tokens <span id="ai-price-sub"></span></h3>
+            <div class="em-ctlrow"><div class="em-seg" id="ai-ptype" role="group" aria-label="Token type"></div></div>
+            <div class="em-legend" id="ai-price-legend"></div>
+            <div class="em-chart" id="ai-price" style="min-height:260px"></div>
+          </div>
+          <p class="em-note">Source: <a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a>, Ramp Economics Lab. Adoption history is read through FRED. The industry, size and spend figures and all token data are read from Ramp's page. Prices are Ramp's seven-day averages, and the weekly figures above are the value on the last day of the week, as Ramp reports them.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="em-panel" id="p-indicators" role="tabpanel" hidden>
       <div class="em-bar"><div class="em-wrap">
         <div class="em-ctl"><span class="em-seglabel">Theme</span><div class="em-seg" id="in-theme" role="group" aria-label="Theme"></div></div>
@@ -547,7 +604,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
             <tr><td>Federal debt and the average rate on it</td><td><a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">US Treasury Fiscal Data</a></td><td>Weekdays, late afternoon</td></tr>
             <tr><td>Consumer sentiment</td><td><a href="https://www.sca.isr.umich.edu/" target="_blank" rel="noopener">University of Michigan</a></td><td>After the 10 am release</td></tr>
             <tr><td>Pending home sales</td><td><a href="https://www.nar.realtor/research-and-statistics/housing-statistics/pending-home-sales" target="_blank" rel="noopener">National Association of Realtors</a></td><td>After the 10 am release</td></tr>
-            <tr><td>Business AI adoption</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a></td><td>By hand</td></tr>
+            <tr><td>Business AI adoption, by provider, industry and company size, and spend per employee</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a>, adoption history through FRED</td><td>With the economic data; Ramp updates monthly</td></tr>
+            <tr><td>AI token volume, spend and prices</td><td><a href="https://ramp.com/data/ai-index" target="_blank" rel="noopener">Ramp AI Index</a></td><td>With the economic data; Ramp updates weekly</td></tr>
             <tr class="em-group"><td colspan="3">Markets</td></tr>
             <tr><td>Index levels, share prices, VIX and MOVE</td><td><a href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo Finance</a></td><td>After the close on trading days</td></tr>
             <tr><td>Index members and weights</td><td>Fund holdings from <a href="https://www.ssga.com/us/en/intermediary/etfs" target="_blank" rel="noopener">State Street</a> (SPY and DIA) and <a href="https://www.invesco.com/qqq-etf/en/home.html" target="_blank" rel="noopener">Invesco</a> (QQQ)</td><td>After the close on trading days</td></tr>
@@ -642,7 +700,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const N = typeof NEWS !== 'undefined' ? NEWS : null;
   const newsAgo = (iso) => { const h = (Date.now() - new Date(iso)) / 36e5; return h < 1 ? Math.max(1, Math.round(h * 60)) + 'm ago' : h < 24 ? Math.round(h) + 'h ago' : d3.timeFormat('%b %-d')(new Date(iso)); };
   const K = typeof CRYPTO !== 'undefined' && CRYPTO && CRYPTO.coins && CRYPTO.coins.length ? CRYPTO : null;
-  const TABS = ['overview', 'markets', 'crypto', 'indicators', 'connections', 'data', 'sources'];
+  const TABS = ['overview', 'markets', 'crypto', 'ai', 'indicators', 'connections', 'data', 'sources'];
   const THEMES = [['growth', 'Growth'], ['labor', 'Labor'], ['prices', 'Prices'], ['consumer', 'Consumer'], ['housing', 'Housing'], ['rates', 'Money and rates'], ['fiscal', 'Public finances'], ['ai', 'AI in business']];
   const PERIODS = [['d1', '1D', 'day'], ['w1', '1W', 'week'], ['m1', '1M', 'month'], ['m3', '3M', 'three months'], ['ytd', 'YTD', 'year to date'], ['y1', '1Y', 'year']];
   const C = { a: '#1F4FA8', b: '#C27F0A', c: '#C9357A', ink: '#14161F', grid: '#E4E1D8', band: '#F1EEE4', dot: '#F0B429', up: '#1E7B4F', down: '#B5263A', mid: '#ECE9E1' };
@@ -656,7 +714,7 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   const state = { tab: 'overview', theme: 'all', range: 99, volRange: 3, crRange: 99, index: 'sp500', period: 'd1', table: 'econ', q: '', sector: 'all', sort: 'w', dir: -1, stack: [],
     cyPeriod: 'h24', cyRange: 1, cySel: ['bitcoin', 'ethereum', 'solana'], gapA: 'ccc', gapB: 'aaa', gapRange: 99, gapSwap: false,
     // Long lists start collapsed, with the first group of a table open. These remember what the reader opened, across re-renders.
-    cyAll: false, rankOpen: false, econOpen: null, secOpen: null };
+    cyAll: false, rankOpen: false, econOpen: null, secOpen: null, aiRange: 0.5, aiMeasure: 'volume', aiType: 'all' };
 
   const $ = (id) => document.getElementById(id);
   const utc = (s) => new Date(s + (s.length === 10 ? 'T00:00:00Z' : ''));
@@ -1516,7 +1574,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       const stats = el('div', 'em-stats');
       stat(stats, 'Prior', fmt(num(r.prior), r.unit, dec));
       stat(stats, 'Year ago', num(r.year_ago) === null ? 'Not collected' : fmt(num(r.year_ago), r.unit, dec));
-      const sp = span(r, state.range); stat(stats, state.range >= 99 ? 'Rank since ' + econFrom() : state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
+      const sp = span(r, state.range); const own = series(r.id).length ? series(r.id)[0].d.getUTCFullYear() : 0;
+      stat(stats, state.range >= 99 ? 'Rank since ' + Math.max(own, +econFrom()) : state.range + '-year rank', sp ? sp.rank + ' of 100' : 'n/a');
       body.append(stats);
       if (String(r.has_history) !== 'false') { rangeRow(body, 'History'); chartFor(body, r, C.a, null, 220); }
       // Indicators read from a release rather than a series (pending home sales) carry their own short history.
@@ -1526,14 +1585,17 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
         const box = el('div', 'em-chart'); box.style.minHeight = '200px'; body.append(t, box);
         later(() => lineChart(box, r.history.map((h) => ({ d: utc(h[0]), v: +h[1] })), { name: r.name, unit: r.unit, dec: +r.dec, color: C.a, h: 200, zero: r.unit === '%' }));
       }
-      if (r.id === 'ai_adoption') {
-        const wrap = el('div', 'em-bars'); let g = '';
-        rows('ramp').filter((x) => x.group !== 'All').forEach((x) => {
-          if (x.group !== g) { g = x.group; wrap.append(el('div', 'em-dlabel', 'By ' + g.toLowerCase() + ', September 2026')); }
-          const row = el('div', 'em-brow'), tr = el('div', 'em-btrack'), f = el('div', 'em-bfill'); f.style.width = Math.min(100, +x.sep_2026) + '%'; tr.append(f);
-          row.append(el('span', '', x.segment), tr, el('span', '', (+x.sep_2026).toFixed(1) + '%')); wrap.append(row);
+      if (r.id === 'ai_adoption' && AI && AI.table) {
+        const T = AI.table, wrap = el('div', 'em-bars');
+        ['Provider', 'Company size'].forEach((g) => {
+          wrap.append(el('div', 'em-dlabel', (g === 'Provider' ? 'By provider, ' : 'By company size, ') + d3.utcFormat('%B %Y')(utc(T.month))));
+          T.rows.filter((x) => x.group === g && x.latest >= 1).forEach((x) => {
+            const row = el('div', 'em-brow'), tr = el('div', 'em-btrack'), f = el('div', 'em-bfill'); f.style.width = Math.min(100, x.latest) + '%'; tr.append(f);
+            row.append(el('span', '', x.segment), tr, el('span', '', x.latest.toFixed(1) + '%')); wrap.append(row);
+          });
         });
-        body.append(wrap);
+        const more = btn('em-chip', 'Industries, spend per employee and tokens on the AI tab', () => { $('em-drawer').close(); go('ai'); }); more.style.marginTop = '12px';
+        body.append(wrap, more);
       }
       body.append(el('div', 'em-dlabel', 'What it measures'), el('p', 'em-lede', r.what));
       acc(body, 'First-order effect', r.first); acc(body, 'Second-order effect', r.second); acc(body, 'Seasonal adjustment', r.sa_note); acc(body, 'How it is calculated', r.derived ? r.derived + '.' : '');
@@ -1649,9 +1711,171 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
     ranges();
   }
 
+  /* ---------- AI (Ramp AI Index) ---------- */
+
+  const AI = typeof DATA !== 'undefined' && DATA && DATA.ai ? DATA.ai : null;
+  const AI_COLOR = { all: C.a, anthropic: C.b, openai: C.c, google: '#2F7A52', xai: '#4E5364', other: '#9AA0AE', blend: C.a };
+  const AI_NAME = { all: 'All businesses', anthropic: 'Anthropic', openai: 'OpenAI', google: 'Google', xai: 'xAI', other: 'All others', blend: 'Blended' };
+  const AI_RANGES = [[0.25, '3M'], [0.5, '6M'], [1, '1Y'], [99, 'All']];
+  // Ramp's NAICS sector names, shortened to fit a bar label. The full name is kept as the row's tooltip.
+  const SECTOR = { 'Professional, Scientific, and Technical Services': 'Professional services', 'Management of Companies and Enterprises': 'Management of companies',
+    'Mining, Quarrying, and Oil and Gas Extraction': 'Mining, oil and gas', 'Educational Services': 'Education', 'Administrative and Support and Waste Management and Remediation Services': 'Administrative and support',
+    'Wholesale Trade': 'Wholesale trade', 'Retail Trade': 'Retail trade', 'Real Estate and Rental and Leasing': 'Real estate', 'Transportation and Warehousing': 'Transportation and warehousing',
+    'Agriculture, Forestry, Fishing and Hunting': 'Agriculture', 'Arts, Entertainment, and Recreation': 'Arts and recreation', 'Other Services (except Public Administration)': 'Other services',
+    'Public Administration': 'Public administration', 'Accommodation & Food': 'Accommodation and food', 'Finance & Insurance': 'Finance and insurance', 'Healthcare': 'Health care' };
+  const usd2 = (v, dec) => (v === null || v === undefined ? 'n/a' : '$' + d3.format(',.' + (dec === undefined ? 2 : dec) + 'f')(v));
+  const aiTile = (name, val, chg, meta, onClick) => {
+    const t = onClick ? btn('em-tile', null, onClick) : el('div', 'em-tile static');
+    t.append(el('span', 'em-tile-name', name), el('span', 'em-tile-big', val));
+    if (chg) { const d = el('span', 'em-delta'); d.append(chg); t.append(d); }
+    t.append(el('span', 'em-tile-meta', meta)); return t;
+  };
+  const chgText = (v, unit, dec) => arrow(v) + fmt(v, unit, dec === undefined ? 1 : dec, true);
+  function legend(box, keys) {
+    box.replaceChildren(...keys.map((k) => { const s = el('span'), i = el('i'); i.style.background = AI_COLOR[k]; s.append(i, AI_NAME[k]); return s; }));
+  }
+  function since(pts, years) {
+    if (years >= 99 || !pts.length) return pts;
+    const end = pts[pts.length - 1].d, start = new Date(end); start.setUTCDate(start.getUTCDate() - Math.round(years * 365.25));
+    return pts.filter((p) => p.d >= start);
+  }
+
+  // Several series on one axis, plotted at their own values (multiChart rebases to 100 instead).
+  function levelsChart(box, sets, o) {
+    box.replaceChildren();
+    const W = box.clientWidth || 300, H = o.h || 240;
+    sets = sets.map((s) => ({ ...s, pts: s.pts.filter((p) => p.v !== null && !Number.isNaN(p.v)) })).filter((s) => s.pts.length > 1);
+    if (!sets.length) { box.append(el('p', 'em-note', 'No data.')); return; }
+    const all = sets.flatMap((s) => s.pts), f = (v) => (o.unit === '$' ? usd2(v, o.dec) : fmt(v, o.unit, o.dec));
+    let lo = o.zero ? 0 : d3.min(all, (p) => p.v), hi = d3.max(all, (p) => p.v);
+    const pad = (hi - lo || 1) * 0.06; lo = o.zero ? 0 : lo - pad; hi += pad;
+    const endW = d3.max(sets, (s) => f(s.pts[s.pts.length - 1].v).length) * 7.4 + 16;
+    const m = { t: 10, r: Math.max(48, endW), b: 22, l: o.ml || 44 };
+    const x = d3.scaleUtc().domain(d3.extent(all, (p) => p.d)).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([lo, hi]).range([H - m.b, m.t]);
+    const tf = o.tfmt || fMon;
+    const svg = d3.select(box).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H).attr('role', 'img')
+      .attr('aria-label', `${o.name}, ${tf(x.domain()[0])} to ${tf(x.domain()[1])}. ` + sets.map((s) => `${s.name} ${f(s.pts[s.pts.length - 1].v)}`).join(', ') + '.');
+    const ticks = y.ticks(4);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', C.grid);
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'em-tick').attr('x', m.l - 6).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end')
+      .text((d) => (o.unit === '$' ? usd2(d, o.tickDec === undefined ? o.dec : o.tickDec) : fmt(d, o.unit, o.tickDec === undefined ? 0 : o.tickDec)));
+    const span = x.domain()[1] - x.domain()[0];
+    svg.append('g').selectAll('text').data(x.ticks(Math.max(2, Math.floor(W / 110)))).join('text').attr('class', 'em-tick').attr('x', x).attr('y', H - 5).attr('text-anchor', 'middle')
+      .text(d3.utcFormat(span > 200 * 864e5 ? "%b '%y" : '%b %-d'));
+    const line = d3.line().x((p) => x(p.d)).y((p) => y(p.v));
+    sets.forEach((s) => svg.append('path').attr('d', line(s.pts)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', s.thin ? 1.5 : 2).attr('stroke-linejoin', 'round'));
+    // End labels, nudged apart so they never overlap.
+    const ends = sets.map((s) => ({ s, y: y(s.pts[s.pts.length - 1].v) })).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+    ends.forEach((e) => {
+      const p = e.s.pts[e.s.pts.length - 1];
+      svg.append('circle').attr('cx', x(p.d)).attr('cy', y(p.v)).attr('r', 3.5).attr('fill', '#fff').attr('stroke', e.s.color).attr('stroke-width', 2);
+      svg.append('text').attr('class', 'em-endlabel').attr('x', x(p.d) + 8).attr('y', e.y + 4).text(f(p.v));
+    });
+    const rule = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', C.ink).attr('opacity', 0.5).attr('display', 'none');
+    const dots = sets.map((s) => svg.append('circle').attr('r', 4).attr('fill', '#fff').attr('stroke', s.color).attr('stroke-width', 2).attr('display', 'none'));
+    const tip = el('div', 'em-tip'); tip.hidden = true; box.append(tip);
+    const ref = sets[0].pts, bis = d3.bisector((p) => p.d).center;
+    svg.append('rect').attr('x', m.l).attr('y', 0).attr('width', W - m.r - m.l).attr('height', H).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const d = ref[bis(ref, x.invert(d3.pointer(ev)[0]))].d;
+        rule.attr('display', null).attr('x1', x(d)).attr('x2', x(d));
+        tip.replaceChildren(el('div', 't', tf(d)));
+        sets.forEach((s, i) => {
+          const p = s.pts[bis(s.pts, d)]; if (!p || Math.abs(p.d - d) > 20 * 864e5) { dots[i].attr('display', 'none'); return; }
+          dots[i].attr('display', null).attr('cx', x(p.d)).attr('cy', y(p.v));
+          const row = el('div'), key = el('i'); key.style.background = s.color; row.append(key, el('b', '', f(p.v)), el('span', 't', s.name)); tip.append(row);
+        });
+        tip.hidden = false;
+        const tw = tip.offsetWidth; tip.style.left = Math.min(Math.max(0, x(d) + 12), W - tw) + 'px'; tip.style.top = m.t + 'px';
+      })
+      .on('pointerleave', () => { rule.attr('display', 'none'); dots.forEach((c) => c.attr('display', 'none')); tip.hidden = true; });
+  }
+
+  function barRows(box, rs, prev) {
+    const mx = Math.max(100, d3.max(rs, (x) => x.latest));
+    box.replaceChildren(...rs.map((x) => {
+      const row = el('div', 'em-brow chg'), tr = el('div', 'em-btrack'), fl = el('div', 'em-bfill'), name = SECTOR[x.segment] || x.segment;
+      fl.style.width = (100 * x.latest) / mx + '%'; tr.append(fl);
+      const lab = el('span', '', name); lab.title = x.segment; const c = x.change ?? (x.latest - x.prior);
+      row.title = `${x.segment}: ${x.latest.toFixed(1)}%, ${c >= 0 ? 'up' : 'down'} ${Math.abs(c).toFixed(1)} points from ${prev}`;
+      row.append(lab, tr, el('span', '', x.latest.toFixed(1) + '%'), el('span', '', (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(c).toFixed(1) + ' pts'));
+      return row;
+    }));
+  }
+
+  function aiPanel() {
+    if (!AI || !AI.table || !AI.tokens || !AI.prices || !AI.adoption) { $('ai-body').replaceChildren(el('p', 'em-note', 'AI data did not load.')); return; }
+    const T = AI.table, tk = AI.tokens, P = AI.prices, A = AI.adoption;
+    const mLong = (s) => d3.utcFormat('%b %Y')(utc(s)), wEnd = utc(tk.week_end), wi = tk.weeks.length - 1, wj = Math.max(0, wi - 4);
+    const wPrevEnd = new Date(utc(tk.weeks[wj])); wPrevEnd.setUTCDate(wPrevEnd.getUTCDate() + 6);
+    $('ai-asof').textContent = `Adoption through ${mLong(T.month)} · Tokens through the week ending ${fDay(wEnd)} · Ramp AI Index`;
+
+    // Adoption: tiles, history, breakdowns.
+    const row = (g, s) => T.rows.find((r) => r.group === g && (!s || r.segment === s));
+    const pm = d3.utcFormat('%b')(utc(T.prior_month));
+    const ind = byId(), ai = ind.get('ai_adoption');
+    const tiles = [['All', null, 'all'], ['Provider', 'Anthropic', 'anthropic'], ['Provider', 'OpenAI', 'openai'], ['Provider', 'xAI', 'xai']].map(([g, s, k]) => {
+      const r = row(g, s); if (!r) return null;
+      return aiTile(k === 'all' ? 'Businesses paying for AI' : 'Paying ' + AI_NAME[k], r.latest.toFixed(1) + '%', chgText(r.change ?? (r.latest - r.prior), 'pts'), `${mLong(T.month)}, vs ${pm}`, k === 'all' && ai ? () => open('ind', 'ai_adoption') : null);
+    }).filter(Boolean);
+    $('ai-adopt-tiles').replaceChildren(...tiles);
+    const keys = ['all', 'anthropic', 'openai', 'xai'];
+    legend($('ai-adopt-legend'), keys);
+    $('ai-adopt-csub').textContent = `percent, monthly, ${mLong(A.dates[0])} to ${mLong(A.dates[A.dates.length - 1])}`;
+    later(() => levelsChart($('ai-adopt'), keys.map((k) => ({ name: AI_NAME[k], color: AI_COLOR[k], pts: A.dates.map((d, i) => ({ d: utc(d), v: A[k][i] })) })), { name: 'Share of businesses paying for AI', unit: '%', dec: 1, h: 260, zero: true }));
+    const sectors = T.rows.filter((r) => r.group === 'Industry').sort((a, b) => b.latest - a.latest);
+    $('ai-ind-sub').textContent = `${mLong(T.month)}, change from ${pm}`;
+    barRows($('ai-ind'), sectors, mLong(T.prior_month));
+    const sizes = T.rows.filter((r) => r.group === 'Company size');
+    $('ai-size-sub').textContent = `${mLong(T.month)}, change from ${pm}`;
+    barRows($('ai-size'), sizes, mLong(T.prior_month));
+    $('ai-spend-sub').textContent = `per employee per month, ${mLong(T.month)}`;
+    const sp = $('ai-spend'); sp.replaceChildren();
+    T.rows.filter((r) => r.group === 'Spend per employee' || r.group === 'Share of spend').forEach((r) => {
+      const share = r.group === 'Share of spend', c = r.change ?? (r.latest - r.prior);
+      const v = el('div', 'em-stat-v', share ? r.latest.toFixed(2) + '%' : usd2(r.latest));
+      v.append(el('small', '', (share ? fmt(c, 'pts', 2, true) : (c >= 0 ? '+' : '−') + usd2(Math.abs(c))) + ' from ' + pm));
+      const d = el('div'); d.append(el('div', 'em-stat-l', share ? 'AI share of all business spend, excluding payroll' : r.segment.replace('firms paying for AI', 'firms').replace('Median firm paying for AI', 'Median firm')), v); sp.append(d);
+    });
+
+    // Tokens: tiles compare the latest complete week with four weeks earlier, as Ramp does.
+    seg($('ai-range'), AI_RANGES, state.aiRange, (v) => { state.aiRange = v; aiPanel(); });
+    const vg = tk.volume.total[wi] / tk.volume.total[wj] - 1, sg = tk.spend.total[wi] / tk.spend.total[wj] - 1;
+    const pi = P.dates.indexOf(tk.week_end), pj = P.dates.indexOf(d3.utcFormat('%Y-%m-%d')(wPrevEnd));
+    const lead = tk.makers.filter((k) => k !== 'other').sort((a, b) => tk.spend.share[b][wi] - tk.spend.share[a][wi])[0];
+    const wk = `week ending ${d3.utcFormat('%b %-d')(wEnd)}, vs ${d3.utcFormat('%b %-d')(wPrevEnd)}`;
+    $('ai-tok-tiles').replaceChildren(
+      aiTile('Token volume', pct(100 * vg, 1), null, 'Change, ' + wk),
+      aiTile('Token spend', pct(100 * sg, 1), null, 'Change, ' + wk),
+      pi >= 0 ? aiTile('Blended price per million tokens', usd2(P.all.blend[pi]), pj >= 0 ? chgText(100 * (P.all.blend[pi] / P.all.blend[pj] - 1), '%') : null, 'OpenAI and Anthropic, ' + wk) : null,
+      aiTile(AI_NAME[lead] + ' share of token spend', tk.spend.share[lead][wi].toFixed(1) + '%', chgText(tk.spend.share[lead][wi] - tk.spend.share[lead][wj], 'pts'), 'Largest share, ' + wk),
+    );
+    [...$('ai-tok-tiles').childNodes].forEach((n) => { if (n.textContent === '') n.remove(); });
+    const weeks = tk.weeks.map(utc), rng = state.aiRange;
+    seg($('ai-measure'), [['volume', 'Volume'], ['spend', 'Spend']], state.aiMeasure, (v) => { state.aiMeasure = v; aiPanel(); });
+    legend($('ai-share-legend'), tk.makers);
+    $('ai-share-sub').textContent = 'percent of the total, weekly';
+    const sh = tk[state.aiMeasure].share;
+    later(() => levelsChart($('ai-share'), tk.makers.map((k) => ({ name: AI_NAME[k], color: AI_COLOR[k], thin: k === 'other', pts: since(weeks.map((d, i) => ({ d, v: sh[k][i] })), rng) })),
+      { name: 'Share of token ' + state.aiMeasure + ' by model maker', unit: '%', dec: 1, h: 240, zero: true, tfmt: fDay }));
+    const tot = (key) => since(weeks.map((d, i) => ({ d, v: tk[key].total[i] })), rng);
+    const t0 = tot('volume');
+    $('ai-total-sub').textContent = t0.length ? `weekly, indexed to 100 at ${fDay(t0[0].d)}` : '';
+    const tl = $('ai-total-legend'); tl.replaceChildren(...[['Volume', C.a], ['Spend', C.b]].map(([n, c]) => { const s = el('span'), i = el('i'); i.style.background = c; s.append(i, n); return s; }));
+    later(() => multiChart($('ai-total'), [{ name: 'Volume', color: C.a, pts: t0 }, { name: 'Spend', color: C.b, pts: tot('spend') }], { h: 270 }));
+    seg($('ai-ptype'), [['all', 'All tokens'], ['input', 'Input'], ['output', 'Output']], state.aiType, (v) => { state.aiType = v; aiPanel(); });
+    legend($('ai-price-legend'), ['blend', 'anthropic', 'openai']);
+    $('ai-price-sub').textContent = 'US dollars, seven-day average' + (state.aiType === 'input' ? ', input tokens not served from cache' : state.aiType === 'output' ? ', output tokens' : ', all tokens');
+    const days = P.dates.map(utc), pt = P[state.aiType];
+    later(() => levelsChart($('ai-price'), ['blend', 'anthropic', 'openai'].map((k) => ({ name: AI_NAME[k], color: AI_COLOR[k], pts: since(days.map((d, i) => ({ d, v: pt[k][i] })), rng) })),
+      { name: 'Price per million tokens', unit: '$', dec: 2, h: 260, zero: true, tfmt: fDay, tickDec: 2 }));
+  }
+
   /* ---------- shell ---------- */
 
-  const PANELS = { overview, markets, crypto, indicators, connections, data: table, sources: () => {} };
+  const PANELS = { overview, markets, crypto, ai: aiPanel, indicators, connections, data: table, sources: () => {} };
   function render() {
     document.querySelectorAll('.em-tab').forEach((b) => { const on = b.dataset.tab === state.tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
     TABS.forEach((t) => { $('p-' + t).hidden = t !== state.tab; });

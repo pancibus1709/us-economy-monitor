@@ -14,7 +14,8 @@ Sources
   University of Michigan Surveys of Consumers: index of consumer sentiment
   National Association of Realtors: Pending Home Sales Index, read from its latest news release;
   existing-home sales through FRED, which carries only NAR's latest 13 months
-The Ramp AI Index is read by hand and is left as it is.
+  Ramp AI Index: adoption through FRED; Ramp's latest summary table, weekly token volume and spend,
+  and daily token prices from ramp.com/data/ai-index. Each part keeps its last good copy if it fails.
 """
 import datetime as dt
 import json
@@ -42,7 +43,7 @@ FRED = {
     "core_services_yoy": ("yoy", "CUUR0000SASLE"), "core_pce_yoy": ("yoy", "PCEPILFE"), "ppi_yoy": ("yoy", "PPIFID"),
     "real_pce_yoy": ("yoy", "PCEC96"), "retail_yoy": ("yoy", "RSAFS"), "saving": ("level", "PSAVERT"),
     "starts": ("level", "HOUST"), "permits": ("level", "PERMIT"), "info_emp_yoy": ("yoy", "USINFO"),
-    "biz_apps": ("thousandth", "BABATOTALSAUS"),
+    "biz_apps": ("thousandth", "BABATOTALSAUS"), "ai_adoption": ("level", "RAMPAIALL"),
     "mortgage30": ("daily", "MORTGAGE30US"), "effr": ("daily", "EFFR"), "y2": ("daily", "DGS2"), "y10": ("daily", "DGS10"),
 }
 EXTRA = ["UNEMPLOY", "DGS3MO", "MTSDS133FMS", "EXHOSLUSM495S"]
@@ -204,6 +205,131 @@ def existing(r, src, now):
     r["via"] = VIA_FRED
     r["retrieved"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     return ("updated" if changed else "same"), msg
+
+
+RAMP = "https://ramp.com/data/ai-index"
+RAMP_FRED = {"all": "RAMPAIALL", "anthropic": "RAMPAIANTHROPIC", "openai": "RAMPAIOPENAI", "xai": "RAMPAIXAI"}
+MAKERS = ["anthropic", "openai", "google", "xai"]  # charted on their own; every other maker is summed as "other"
+
+
+def flat(html):
+    t = re.sub(r"(?s)<(script|style).*?</\1>", " ", html)
+    t = re.sub(r"\|+", "|", re.sub(r"<[^>]+>", "|", t))
+    return re.sub(r"\s+", " ", t).replace("&amp;", "&")
+
+
+def ramp_table(html):
+    """Ramp's summary table: latest and prior month for each adoption segment, spend per employee and AI's share of spend."""
+    t = flat(html)
+    m = re.search(r"Metric ?\| ?(\w{3} \d{4}) ?\| ?(\w{3} \d{4}) ?\| ?Change ?\|(.*?)\| ?Tokenomics", t)
+    if not m:
+        raise RuntimeError("Ramp: summary table not found")
+    cells = [c.strip() for c in m.group(3).split("|") if c.strip()]
+    val = lambda c: float(c.replace("$", "").replace(",", "").replace("%", ""))
+    rows = []
+    for i in range(0, len(cells) - 3, 4):
+        name, a, b, ch = cells[i], cells[i + 1], cells[i + 2], cells[i + 3]
+        try:
+            a, b = val(a), val(b)
+            ch = float(re.sub(r"[^0-9.+-]", "", ch.replace("−", "-")))  # Ramp's own change, worked from unrounded figures
+        except ValueError:
+            raise RuntimeError(f"Ramp: unreadable row {cells[i:i + 4]}")
+        if name.startswith("AI adoption: "):
+            seg = name[len("AI adoption: "):]
+            if seg == "All businesses":
+                group = "All"
+            elif seg.endswith(" sector"):
+                group, seg = "Industry", seg[:-len(" sector")]
+            elif re.match(r"\d\. ", seg):
+                group, seg = "Company size", re.sub(r"^\d\. | \(\w+\)$", "", seg)
+            else:
+                group = "Provider"
+        elif name.startswith("AI spend per employee per month: "):
+            group, seg = "Spend per employee", name.split(": ", 1)[1]
+        elif name.startswith("AI share of business spend"):
+            group, seg = "Share of spend", "AI share of business spend, excluding payroll"
+        else:
+            continue
+        rows.append({"group": group, "segment": seg, "latest": a, "prior": b, "change": ch})
+    groups = {r["group"] for r in rows}
+    if not {"All", "Provider", "Industry", "Company size", "Spend per employee"} <= groups or len(rows) < 20:
+        raise RuntimeError(f"Ramp: table incomplete ({len(rows)} rows, groups {sorted(groups)})")
+    if any(not (0 <= r["latest"] <= 100) for r in rows if r["group"] not in ("Spend per employee",)):
+        raise RuntimeError("Ramp: a share outside 0 to 100")
+    mon = lambda x: f"{x[4:]}-{MON.index(x[:3]) + 1:02d}-01"
+    return {"month": mon(m.group(1)), "prior_month": mon(m.group(2)), "rows": rows}
+
+
+def ramp_tokens(raw):
+    """Weekly token volume and spend: total and each model maker's share."""
+    rows = json.loads(raw)
+    acc = {}
+    for r in rows:
+        if r.get("period_grain") != "weekly" or r.get("metric_key") not in ("token_volume", "token_spend"):
+            continue
+        k = acc.setdefault((r["period_start"], r["period_end"]), {"token_volume": {}, "token_spend": {}})[r["metric_key"]]
+        mk = r["model_maker"] if r["model_maker"] in MAKERS else "other"
+        k[mk] = k.get(mk, 0) + float(r["metric_value"])
+    weeks = sorted(acc)
+    if len(weeks) < 20:
+        raise RuntimeError(f"Ramp tokens: only {len(weeks)} weeks")
+    out = {"weeks": [w[0] for w in weeks], "week_end": weeks[-1][1], "makers": MAKERS + ["other"]}
+    for metric, key in (("token_volume", "volume"), ("token_spend", "spend")):
+        tot = [sum(acc[w][metric].values()) for w in weeks]
+        if not all(t > 0 for t in tot):
+            raise RuntimeError(f"Ramp tokens: a week with no {key}")
+        out[key] = {"total": [round(t, 3) for t in tot],
+                    "share": {m: [round(100 * acc[w][metric].get(m, 0) / t, 4) for w, t in zip(weeks, tot)] for m in out["makers"]}}
+    return out
+
+
+def ramp_prices(raw):
+    """Daily price per million tokens (Ramp's figures are already seven-day averages), by token type."""
+    rows = json.loads(raw)
+    types = {"all_tokens": "all", "uncached_input": "input", "output": "output"}
+    by = {}
+    for r in rows:
+        if r.get("token_type") in types and r.get("series_key") in ("blend", "anthropic", "openai"):
+            by.setdefault(r["usage_date"], {})[(types[r["token_type"]], r["series_key"])] = float(r["price_per_million"])
+    dates = sorted(d for d in by if len(by[d]) == 9)
+    if len(dates) < 60:
+        raise RuntimeError(f"Ramp prices: only {len(dates)} complete days")
+    if not all(v > 0 for d in dates for v in by[d].values()):
+        raise RuntimeError("Ramp prices: a price at or below zero")
+    return {"dates": dates, **{t: {k: [round(by[d][(t, k)], 4) for d in dates] for k in ("blend", "anthropic", "openai")} for t in types.values()}}
+
+
+def ramp_ai(prev, now):
+    """The Ramp AI Index section. Returns (data, list of parts held at their last good copy)."""
+    out, held = dict(prev or {}), []
+    stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        ser = {k: {d: v for d, v in fred(c).items() if d >= "2023-07-01"} for k, c in RAMP_FRED.items()}
+        dates = sorted(ser["all"])
+        if len(dates) < 30 or not all(0 <= v <= 100 for s in ser.values() for v in s.values()):
+            raise RuntimeError(f"{len(dates)} months or a share outside 0 to 100")
+        out["adoption"] = {"dates": dates, **{k: [None if d not in s else round(s[d], 2) for d in dates] for k, s in ser.items()}, "retrieved": stamp}
+    except Exception as e:  # noqa: BLE001
+        held.append(f"Ramp adoption history ({e})")
+    try:
+        out["table"] = {**ramp_table(get(RAMP, agent="Mozilla/5.0")), "retrieved": stamp}
+    except Exception as e:  # noqa: BLE001
+        held.append(f"Ramp summary table ({e})")
+    try:
+        out["tokens"] = {**ramp_tokens(get(RAMP + "/chart-data/tokenVolumes", agent="Mozilla/5.0")), "retrieved": stamp}
+    except Exception as e:  # noqa: BLE001
+        held.append(f"Ramp token volume and spend ({e})")
+    try:
+        out["prices"] = {**ramp_prices(get(RAMP + "/chart-data/tokenPrices", agent="Mozilla/5.0")), "retrieved": stamp}
+    except Exception as e:  # noqa: BLE001
+        held.append(f"Ramp token prices ({e})")
+    # The adoption chart and the table must agree on the month they share.
+    a, tb = out.get("adoption"), out.get("table")
+    if a and tb and tb["month"] in a["dates"]:
+        overall = next(r["latest"] for r in tb["rows"] if r["group"] == "All")
+        if abs(a["all"][a["dates"].index(tb["month"])] - overall) > 0.15:
+            held.append(f"Ramp check: FRED and Ramp disagree on {tb['month']} ({a['all'][a['dates'].index(tb['month'])]} against {overall})")
+    return out, held
 
 
 def month(d):
@@ -442,6 +568,11 @@ def main():
         if r["id"] in ("pending_sales", "existing_sales"):
             kind, msg = pending(r, raw.get("nar"), now) if r["id"] == "pending_sales" else existing(r, raw.get("EXHOSLUSM495S"), now)
             {"updated": updated, "same": same, "held": held}[kind].append(msg)
+    ai, ai_held = ramp_ai(data.get("ai"), now)
+    if ai:
+        data["ai"] = ai
+    held.extend(ai_held)
+    data.pop("ramp", None)  # the hand-entered Ramp table, replaced by data["ai"]["table"]
     data["series"] = [{"id": r["id"], "date": d, "value": str(round(v, 2))} for r in data["indicators"] for d, v in sorted(series[r["id"]].items())]
 
     ind = {r["id"]: r for r in data["indicators"]}
