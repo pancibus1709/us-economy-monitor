@@ -52,7 +52,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-head .em-wrap { display: flex; gap: 14px; align-items: center; padding-block: 18px; }
 .em-flora { flex: 0 0 auto; width: 40px; height: 40px; }
 .em-title { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 4vw, 32px); line-height: 1.1; margin: 0; }
-.em-stamp { font-size: 12.5px; margin: 3px 0 0; opacity: .9; }
+.em-lede { font-size: 14.5px; line-height: 1.4; margin: 6px 0 0; }
+.em-stamp { font-size: 12.5px; margin: 5px 0 0; opacity: .9; }
 .em-headtext { flex: 1 1 280px; min-width: 0; }
 .em-legal { font-size: 12px; line-height: 1.4; margin: 5px 0 0; opacity: .88; max-width: 78ch; }
 .em-legal a { color: #fff !important; text-underline-offset: 2px; }
@@ -224,7 +225,8 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
 .em-method p, .em-method li { max-width: 74ch; color: var(--ink-2); margin: 8px 0 0; }
 .em-method ul { padding-left: 18px; margin: 4px 0 0; }
 .em a, .em-drawer a { color: var(--cobalt); text-underline-offset: 2px; }
-.em-foot { padding-block: 20px 48px; font-size: 12.5px; color: var(--ink-3); }
+.em-foot { padding-block: 20px 48px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--line); margin-top: 28px; }
+.em-foot p { margin: 0 0 4px; max-width: 86ch; } .em-foot a { color: var(--cobalt); text-underline-offset: 2px; }
 
 /* Detail panel */
 .em-drawer { --wall: #FBFAF6; --panel: #FFFFFF; --ink: #14161F; --ink-2: #4E5364; --ink-3: #636878; --line: #E4E1D8; --line-2: #EFECE4; --cobalt: #1F4FA8; --cobalt-wash: #EAF0FA; --ochre: #C27F0A; --marigold: #F0B429; --up: #1E7B4F; --down: #B5263A;
@@ -340,7 +342,12 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
   .em-g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .em-lrow, .em-lhead { grid-template-columns: 92px minmax(40px, 1fr) 48px 44px; gap: 8px; }
   .em-bar { position: static; }
-  .em-head .em-wrap { padding-block: 14px; } .em-flora { width: 34px; height: 34px; }
+  .em-head .em-wrap { padding-block: 12px 0; row-gap: 0; column-gap: 10px; } .em-flora { width: 28px; height: 28px; }
+  .em-headtext { display: contents; } .em-title { flex: 1 1 0; min-width: 0; }
+  .em-lede, .em-stamp, .em-legal { flex: 0 0 100%; } .em-lede { font-size: 13.5px; margin-top: 7px; } .em-stamp { font-size: 12px; margin-top: 5px; } .em-legal { margin-top: 3px; }
+  .em-legal-more { display: none; }
+  .em-by { margin-top: 9px; padding-block: 8px; } .em-by span { font-size: 10px; letter-spacing: .05em; margin-right: 4px; }
+  .em-seg { flex-wrap: nowrap; } .em-bar .em-wrap { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 6px; padding-block: 7px; } .em-ctl .em-seg { flex: 0 1 auto; min-width: 0; }
   .em-tab { padding: 12px 11px 9px; font-size: 14px; }
   .em-sec { padding-top: 24px; } .em-h2 { font-size: 21px; }
   .em-sechead .em-ctl { margin-left: 0; }
@@ -364,10 +371,11 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       </svg>
       <div class="em-headtext">
         <h1 class="em-title" id="em-title">US Economy Monitor</h1>
+        <p class="em-lede">The public indicators that describe the US economy, read together, each traced to the agency that published it.</p>
         <p class="em-stamp" id="em-stamp"></p>
-        <p class="em-legal">For information and education only. Not investment advice. Data comes from public sources credited on the <a href="#sources" id="em-legal-src">Sources tab</a> and may be delayed or revised.</p>
+        <p class="em-legal">For information and education only. Not investment advice.<span class="em-legal-more"> Data comes from public sources credited on the <a href="#sources" id="em-legal-src">Sources tab</a> and may be delayed or revised.</span></p>
       </div>
-      <a class="em-by" href="https://www.resolute-bd.com/" target="_blank" rel="noopener"><span>Built by</span> <b>Resolute Business Development</b></a>
+      <a class="em-by" href="https://www.resolute-bd.com/" target="_blank" rel="noopener"><span>Built with Claude by</span> <b>Resolute Business Development</b></a>
     </div>
   </header>
   <div class="em-ribbon"></div>
@@ -612,7 +620,10 @@ window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(all, 1
       </div></div>
     </section>
   </main>
-  <div class="em-wrap em-foot">US Economy Monitor. Built on public data. Figures are subject to their publishers' revisions.</div>
+  <footer class="em-wrap em-foot">
+    <p>US Economy Monitor is a free project built with Claude by <a href="https://www.resolute-bd.com/" target="_blank" rel="noopener">Resolute Business Development</a>.</p>
+    <p>For information and education only. Not investment advice. Data comes from public sources credited on the <a href="#sources">Sources tab</a> and may be delayed or revised by its publishers.</p>
+  </footer>
 
   <dialog class="em-drawer" id="em-drawer" aria-labelledby="em-dtitle">
     <div class="em-dhead"><div id="em-dheadtext"></div><button type="button" class="em-x" id="em-dclose" aria-label="Close">×</button></div>
