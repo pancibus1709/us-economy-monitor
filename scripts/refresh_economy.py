@@ -412,6 +412,14 @@ def build(raw):
     return out
 
 
+# Benchmark revisions confirmed by hand against the agency's own notice. For 14 days after the date the
+# history check is waived for that series, so the revised history replaces the published one. Once it
+# has, the next run's check passes on its own, and after the window the entry does nothing.
+REVISIONS = {
+    "ip_yoy": ("2026-11-24", "Federal Reserve annual revision to industrial production, base year 2022"),
+}
+
+
 def matches(old, new, dec):
     """Does the rebuilt history agree with the history already published?
 
@@ -511,6 +519,12 @@ def main():
         first = min(old[i]) if i in old else "2017-01-01"
         new = {d: v for d, v in new.items() if d >= first}
         ok, why = matches(old.get(i, {}), new, int(r["dec"]))
+        if not ok and i in REVISIONS:
+            day, what = REVISIONS[i]
+            age = (now.date() - dt.date.fromisoformat(day)).days
+            if 0 <= age <= 14:  # the first run after the revision takes it; after that the normal check agrees
+                print(f"  accepting {r['name']}: {what} ({why})")
+                ok = True
         # A month already published stays, even where a gap in the source stops it being rebuilt.
         new = {**{d: v for d, v in old.get(i, {}).items() if d not in new and new and d < max(new)}, **new}
         if not ok:
